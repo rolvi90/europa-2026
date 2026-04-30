@@ -125,6 +125,7 @@ export default function App() {
   const tripDayNumber = selectedDate ? days.indexOf(selectedDate) + 1 : 1;
   const isToday = selectedDate === today;
   const sheetsUrl = "https://docs.google.com/spreadsheets/d/1N1VZ66P9OKwZUhDyr_fw3BDQR9lYmxiTnmtJlBw8ZlY/edit";
+  const itinerarioUrl = "https://docs.google.com/spreadsheets/d/1uZiszgq4GD1aZcYtJc4WNMLpt0lSwLk1rQJ_-NlF0g4/edit";
 
   return (
     <div style={{ fontFamily:"'Georgia',serif", background:"#F7F6F2", minHeight:"100vh", maxWidth:480, margin:"0 auto", boxShadow:"0 0 80px rgba(0,0,0,0.10)" }}>
@@ -321,12 +322,17 @@ export default function App() {
       {/* ── BOTTOM NAV ── */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"rgba(255,255,255,0.96)", backdropFilter:"blur(20px)", borderTop:"1px solid #EEEEE8", padding:"10px 0 22px", display:"flex", justifyContent:"space-around" }}>
         {[{id:"calendario",label:"Calendario",icon:"📅"},{id:"importante",label:"Importante",icon:"🆘"},{id:"agregar",label:"Agregar",icon:"➕"}].map(tab => (
-          <button key={tab.id} onClick={() => { setActiveTab(tab.id); if(tab.id==="importante") setShowImportant(true); if(tab.id==="agregar") setShowAdd(true); }} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 24px", opacity:activeTab===tab.id?1:0.38, transition:"opacity 0.2s" }}>
+          <button key={tab.id} onClick={() => { setActiveTab(tab.id); if(tab.id==="importante") setShowImportant(true); if(tab.id==="agregar") setShowAdd(true); }} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 16px", opacity:activeTab===tab.id?1:0.38, transition:"opacity 0.2s" }}>
             <span style={{ fontSize:24 }}>{tab.icon}</span>
             <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:activeTab===tab.id?700:400, letterSpacing:0.5 }}>{tab.label}</span>
             {activeTab===tab.id && <div style={{ width:5, height:5, borderRadius:"50%", background:"#0f2027" }} />}
           </button>
         ))}
+        {/* Botón Itinerario completo */}
+        <a href={itinerarioUrl} target="_blank" rel="noreferrer" style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 16px", textDecoration:"none", opacity:0.38 }}>
+          <span style={{ fontSize:24 }}>📋</span>
+          <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:400, letterSpacing:0.5 }}>Itinerario</span>
+        </a>
       </div>
     </div>
   );
