@@ -1,22 +1,59 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // ============================================================
-// URL pública del Google Sheet — no requiere API Key
+// NUEVO SHEET — única fuente de información
+// Publica en: Archivo → Compartir → Publicar en la web → CSV
 // ============================================================
-const CSV_EVENTOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRY7reuCjwU6dps6Yp-Ibbx0gigJvtfmJD4OJkPdjAjAXS42-XR2AfZYIj6DDumbH0_4GzOJxb-fPT/pub?output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYi8DGHJ3NGjrI6LM1KQLXe5ADHNKZB1iPUOZimRvKo-uQPd_n_P1Kqmncc66tbyYqUtCZDFehAsvo/pub?gid=1030451032&single=true&output=csv";
+const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1AjdLO-9VXKZ32_fkZ_b-9qHTThj1gxpQ3H6H80lHIAc/edit";
+const CLAUDE_URL = "https://claude.ai/new";
 
 const TRIP = { tripName: "Europa 2026", startDate: "2026-05-18", endDate: "2026-06-05" };
 
-const TYPE_META = {
-  vuelo:       { bg: "#E8F4FD", accent: "#2563EB", dark: "#1E40AF", label: "Vuelo",       icon: "✈️" },
-  hotel:       { bg: "#F0FDF4", accent: "#16A34A", dark: "#15803D", label: "Hotel",       icon: "🏨" },
-  restaurante: { bg: "#FFF7ED", accent: "#EA580C", dark: "#C2410C", label: "Restaurante", icon: "🍽️" },
-  museo:       { bg: "#FDF4FF", accent: "#9333EA", dark: "#7E22CE", label: "Museo",       icon: "🎨" },
-  tren:        { bg: "#FFFBEB", accent: "#D97706", dark: "#B45309", label: "Tren",        icon: "🚄" },
-  actividad:   { bg: "#FFF1F2", accent: "#E11D48", dark: "#BE123C", label: "Actividad",   icon: "🗺️" },
-  evento:      { bg: "#F0F9FF", accent: "#0284C7", dark: "#0369A1", label: "Evento",      icon: "🎭" },
+// ============================================================
+// Categorías y subcategorías
+// ============================================================
+const CATEGORIES = {
+  transporte:  { color: "#2563EB", bg: "#E8F4FD", dark: "#1E40AF", label: "Transporte", icon: "🚆" },
+  hotel:       { color: "#16A34A", bg: "#F0FDF4", dark: "#15803D", label: "Hotel",       icon: "🏨" },
+  restaurante: { color: "#EA580C", bg: "#FFF7ED", dark: "#C2410C", label: "Restaurante", icon: "🍽️" },
+  actividad:   { color: "#9333EA", bg: "#FDF4FF", dark: "#7E22CE", label: "Actividad",   icon: "🗺️" },
+  evento:      { color: "#E11D48", bg: "#FFF1F2", dark: "#BE123C", label: "Evento",      icon: "🎭" },
 };
 
+const SUBCAT_ICONS = {
+  vuelo: "✈️", tren: "🚆", barco: "⛴️", cremallera: "🚞", teleférico: "🚡",
+  funicular: "🚞", tgv: "🚄", equipaje: "🧳",
+  hotel: "🏨", checkout: "🧳",
+  cena: "🍽️", almuerzo: "🍽️", desayuno: "☕",
+  monumento: "🏛️", museo: "🎨", paseo: "🚶", montaña: "🏔️", cascada: "💧",
+  senderismo: "🥾", paisaje: "📷", naturaleza: "🍇", compras: "🛍️",
+  deportes: "🎾",
+};
+
+// ============================================================
+// Datos importantes (estáticos, integrados en la app)
+// ============================================================
+const IMPORTANT_DATA = [
+  { id: 1, category: "emergencia", label: "Emergencias Europa",       value: "112 (equivalente al 911)" },
+  { id: 2, category: "emergencia", label: "Embajada México en París", value: "+33 1 53 70 27 70" },
+  { id: 3, category: "emergencia", label: "Embajada México en Berna", value: "+41 31 357 22 22" },
+  { id: 4, category: "emergencia", label: "Suiza · Policía",          value: "117 · Ambulancia 144 · Bomberos 118" },
+  { id: 5, category: "emergencia", label: "Francia · Policía",        value: "17 · SAMU 15 · Bomberos 18" },
+  { id: 6, category: "internet",   label: "Moneda Suiza",             value: "CHF · 1 CHF ≈ 1.10 USD" },
+  { id: 7, category: "internet",   label: "Moneda Francia",           value: "EUR · tarjetas ampliamente aceptadas" },
+  { id: 8, category: "internet",   label: "Enchufes Suiza",           value: "Tipo J — adaptador necesario" },
+  { id: 9, category: "internet",   label: "Enchufes Francia",         value: "Tipo C/E — adaptador necesario" },
+  { id:10, category: "internet",   label: "eSIM Europa",              value: "Airalo / Holafly — datos Europa", link: "https://www.airalo.com" },
+  { id:11, category: "documento",  label: "Swiss Travel Pass",        value: "Activar en primer uso del tren (20 mayo)" },
+  { id:12, category: "documento",  label: "App SBB Mobile",           value: "Indispensable — andenes y horarios en vivo" },
+  { id:13, category: "documento",  label: "Webcam Zermatt",           value: "Revisar antes de subir al Glacier Paradise", link: "https://zermatt.com/webcams" },
+  { id:14, category: "documento",  label: "Pronóstico Suiza",         value: "MeteoSwiss para clima alpino", link: "https://www.meteoswiss.admin.ch" },
+];
+
+// ============================================================
+// Helpers
+// ============================================================
 function getDaysArray(start, end) {
   const days = [];
   let cur = new Date(start + "T12:00:00");
@@ -28,15 +65,15 @@ function getDaysArray(start, end) {
   return days;
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr + "T12:00:00");
+function formatDate(s) {
+  if (!s) return "";
+  const d = new Date(s + "T12:00:00");
   return d.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
 }
 
 function getTodayStr() { return new Date().toISOString().split("T")[0]; }
 
-// Parsea CSV respetando campos entre comillas
+// CSV parser que respeta comillas
 function parseCSV(text) {
   const lines = text.trim().split("\n");
   return lines.slice(1).map(line => {
@@ -44,10 +81,11 @@ function parseCSV(text) {
     let cur = "", inQ = false;
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
-      if (ch === '"' && !inQ) { inQ = true; }
-      else if (ch === '"' && inQ) { inQ = false; }
+      if (ch === '"' && !inQ) inQ = true;
+      else if (ch === '"' && inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else if (ch === '"' && inQ) inQ = false;
       else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ""; }
-      else { cur += ch; }
+      else cur += ch;
     }
     cols.push(cur.trim());
     return cols;
@@ -55,48 +93,44 @@ function parseCSV(text) {
 }
 
 async function loadEvents() {
-  const res = await fetch(CSV_EVENTOS);
+  const res = await fetch(CSV_URL);
   if (!res.ok) throw new Error("No se pudo cargar el Sheet");
   const text = await res.text();
   const rows = parseCSV(text);
+  // Columnas: Fecha,Hora,Categoría,Subcategoría,Título,Lugar,Confirmación,Costo,Notas Principales,Tips,Link,Estado,Ícono
   return rows.filter(r => r[0] && r[0].startsWith("2026")).map((row, i) => ({
     id: i + 1,
     date: row[0].trim(),
-    type: (row[1] || "actividad").toLowerCase().trim(),
-    title: row[2] || "",
-    time: row[3] || "",
-    confirmation: row[4] || "",
-    notes: row[5] || "",
-    link: row[6] || "",
-    icon: row[7] || TYPE_META[(row[1] || "actividad").toLowerCase().trim()]?.icon || "📌",
+    time: row[1] || "",
+    category: (row[2] || "actividad").toLowerCase().trim(),
+    subcategory: (row[3] || "").toLowerCase().trim(),
+    title: row[4] || "",
+    place: row[5] || "",
+    confirmation: row[6] || "",
+    cost: row[7] || "",
+    notes: row[8] || "",
+    tips: row[9] || "",
+    link: row[10] || "",
+    status: (row[11] || "confirmado").toLowerCase().trim(),
+    icon: row[12] || SUBCAT_ICONS[(row[3] || "").toLowerCase().trim()] || CATEGORIES[(row[2] || "actividad").toLowerCase().trim()]?.icon || "📌",
   }));
 }
 
-// Datos importantes fijos (puedes editar aquí directamente)
-const IMPORTANT_DATA = [
-  { id: 1, category: "emergencia", label: "Emergencias Europa",         value: "112 (equivalente al 911)",            link: "" },
-  { id: 2, category: "emergencia", label: "Embajada México en París",   value: "+33 1 53 70 27 70",                   link: "" },
-  { id: 3, category: "emergencia", label: "Policía Suiza",              value: "117 · Ambulancia: 144",               link: "" },
-  { id: 4, category: "emergencia", label: "Seguro de viaje",            value: "Agrega tu número de póliza aquí",     link: "" },
-  { id: 5, category: "internet",   label: "SIM / eSIM Europa",          value: "Airalo o Holafly — 15GB Europa",      link: "https://www.airalo.com" },
-  { id: 6, category: "internet",   label: "Moneda Suiza",               value: "Franco suizo CHF · 1 CHF ≈ 1.10 USD", link: "" },
-  { id: 7, category: "internet",   label: "Moneda Francia",             value: "Euro EUR · tarjetas aceptadas",       link: "" },
-  { id: 8, category: "documento",  label: "Swiss Travel Pass",          value: "Activar en primer uso del tren",      link: "https://www.swiss-pass.ch" },
-  { id: 9, category: "documento",  label: "Enchufes Suiza",             value: "Tipo J — llevar adaptador",           link: "" },
-  { id:10, category: "documento",  label: "Enchufes Francia",           value: "Tipo C/E — llevar adaptador",         link: "" },
-];
-
+// ============================================================
+// MAIN APP
+// ============================================================
 export default function App() {
-  const [events, setEvents]       = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [view, setView] = useState("calendario"); // calendario | categorias | importante | claude
   const [selectedDate, setSelectedDate] = useState(null);
-  const [activeTab, setActiveTab] = useState("calendario");
-  const [showImportant, setShowImportant] = useState(false);
-  const [showAdd, setShowAdd]     = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [expandedEvent, setExpandedEvent] = useState(null);
-  const [checked, setChecked]     = useState({});
-  const [lastSync, setLastSync]   = useState(null);
+  const [checked, setChecked] = useState({});
+  const [showImportant, setShowImportant] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -121,219 +155,396 @@ export default function App() {
   const eventsForDay = (date) =>
     events.filter(e => e.date === date).sort((a, b) => a.time.localeCompare(b.time));
 
+  const eventsByCategory = useMemo(() => {
+    const map = {};
+    Object.keys(CATEGORIES).forEach(k => { map[k] = []; });
+    events.forEach(e => { if (map[e.category]) map[e.category].push(e); });
+    Object.keys(map).forEach(k => map[k].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
+    return map;
+  }, [events]);
+
   const currentEvents = eventsForDay(selectedDate || days[0]);
   const tripDayNumber = selectedDate ? days.indexOf(selectedDate) + 1 : 1;
   const isToday = selectedDate === today;
-  const sheetsUrl = "https://docs.google.com/spreadsheets/d/1N1VZ66P9OKwZUhDyr_fw3BDQR9lYmxiTnmtJlBw8ZlY/edit";
-  const itinerarioUrl = "https://docs.google.com/spreadsheets/d/1uZiszgq4GD1aZcYtJc4WNMLpt0lSwLk1rQJ_-NlF0g4/edit";
+  const pendientes = events.filter(e => e.status === "pendiente").length;
 
   return (
     <div style={{ fontFamily:"'Georgia',serif", background:"#F7F6F2", minHeight:"100vh", maxWidth:480, margin:"0 auto", boxShadow:"0 0 80px rgba(0,0,0,0.10)" }}>
 
-      {/* ── HEADER ── */}
-      <div style={{ background:"linear-gradient(160deg,#0f2027,#203a43,#2c5364)", padding:"36px 24px 22px", position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.07)" }} />
-        <div style={{ position:"absolute", top:-12, right:-12, width:80,  height:80,  borderRadius:"50%", border:"1px solid rgba(255,255,255,0.11)" }} />
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div>
-            <p style={{ margin:"0 0 4px", color:"rgba(255,255,255,0.4)", fontSize:10, letterSpacing:3, textTransform:"uppercase" }}>Mi Viaje</p>
-            <h1 style={{ margin:0, color:"#fff", fontSize:28, fontWeight:400, letterSpacing:-0.5 }}>{TRIP.tripName}</h1>
-            <p style={{ margin:"5px 0 0", color:"rgba(255,255,255,0.38)", fontSize:12 }}>18 Mayo — 5 Junio · {days.length} días</p>
-          </div>
-          <button onClick={load} disabled={loading} style={{ background:"rgba(255,255,255,0.10)", border:"none", borderRadius:12, padding:"8px 10px", cursor:"pointer", color:"#fff", fontSize:20, opacity:loading?0.4:1 }}>
-            {loading ? "⏳" : "🔄"}
-          </button>
-        </div>
-        {/* Progress */}
-        <div style={{ marginTop:18, background:"rgba(255,255,255,0.08)", borderRadius:10, padding:"10px 14px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
-            <span style={{ color:"rgba(255,255,255,0.5)", fontSize:11 }}>Día {tripDayNumber} de {days.length}</span>
-            <span style={{ color:"rgba(255,255,255,0.5)", fontSize:11 }}>{Math.round((tripDayNumber/days.length)*100)}%</span>
-          </div>
-          <div style={{ background:"rgba(255,255,255,0.13)", borderRadius:4, height:5 }}>
-            <div style={{ background:"linear-gradient(90deg,#67e8f9,#818cf8)", borderRadius:4, height:5, width:`${(tripDayNumber/days.length)*100}%`, transition:"width 0.6s" }} />
-          </div>
-        </div>
-        <div style={{ marginTop:8, minHeight:16 }}>
-          {loading && <p style={{ margin:0, color:"rgba(255,255,255,0.4)", fontSize:11 }}>🔄 Cargando tu itinerario…</p>}
-          {error   && <p style={{ margin:0, color:"#FCA5A5", fontSize:11 }}>⚠️ {error}</p>}
-          {!loading && !error && lastSync && <p style={{ margin:0, color:"rgba(255,255,255,0.3)", fontSize:11 }}>✓ Actualizado {lastSync}</p>}
-        </div>
-      </div>
+      {/* HEADER */}
+      <Header trip={TRIP} days={days} tripDayNumber={tripDayNumber} loading={loading} error={error} lastSync={lastSync} pendientes={pendientes} onRefresh={load} />
 
-      {/* ── DATE STRIP ── */}
-      <div style={{ background:"#fff", borderBottom:"1px solid #EEEEE8" }}>
-        <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"14px 18px", scrollbarWidth:"none" }}>
-          {days.map(day => {
-            const d = new Date(day + "T12:00:00");
-            const isSel = day === selectedDate;
-            const isTod = day === today;
-            const count = eventsForDay(day).length;
-            return (
-              <button key={day} onClick={() => setSelectedDate(day)} style={{ flexShrink:0, width:50, padding:"9px 4px 8px", borderRadius:13, border:"none", cursor:"pointer", position:"relative", background:isSel?"#0f2027":isTod?"#EEF6FF":"#F7F6F2", transition:"all 0.18s" }}>
-                <p style={{ margin:0, fontSize:9, color:isSel?"rgba(255,255,255,0.5)":"#bbb", textTransform:"capitalize" }}>{d.toLocaleDateString("es-MX",{weekday:"short"})}</p>
-                <p style={{ margin:"3px 0 2px", fontSize:19, fontWeight:700, color:isSel?"#fff":isTod?"#2563EB":"#1a1a2e" }}>{d.getDate()}</p>
-                <p style={{ margin:0, fontSize:9, color:isSel?"rgba(255,255,255,0.45)":"#ccc", textTransform:"capitalize" }}>{d.toLocaleDateString("es-MX",{month:"short"})}</p>
-                {count > 0 && (
-                  <div style={{ position:"absolute", bottom:5, left:"50%", transform:"translateX(-50%)", display:"flex", gap:2 }}>
-                    {[...Array(Math.min(count,3))].map((_,i) => <div key={i} style={{ width:3, height:3, borderRadius:"50%", background:isSel?"#67e8f9":"#0f2027" }} />)}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* MAIN VIEWS */}
+      {view === "calendario" && (
+        <>
+          <DateStrip days={days} selectedDate={selectedDate} today={today} eventsForDay={eventsForDay} onSelect={setSelectedDate} />
+          <DayHeader selectedDate={selectedDate} isToday={isToday} tripDayNumber={tripDayNumber} count={currentEvents.length} />
+          <EventsList events={currentEvents} loading={loading} expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent} checked={checked} setChecked={setChecked} emptyMsg={events.length===0?"Sin datos. Toca 🔄":"Día libre"} />
+        </>
+      )}
 
-      {/* ── DAY HEADER ── */}
-      <div style={{ padding:"18px 22px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+      {view === "categorias" && (
+        <CategoriesView eventsByCategory={eventsByCategory} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent} checked={checked} setChecked={setChecked} loading={loading} />
+      )}
+
+      {/* MODALS */}
+      {showImportant && <ImportantModal onClose={() => { setShowImportant(false); setView("calendario"); }} />}
+      {showAdd && <AddModal onClose={() => { setShowAdd(false); setView("calendario"); }} sheetUrl={SHEET_EDIT_URL} onSync={load} />}
+
+      {/* BOTTOM NAV */}
+      <BottomNav view={view} setView={setView} setShowImportant={setShowImportant} setShowAdd={setShowAdd} />
+    </div>
+  );
+}
+
+// ============================================================
+// HEADER
+// ============================================================
+function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendientes, onRefresh }) {
+  const pct = Math.round((tripDayNumber / days.length) * 100);
+  return (
+    <div style={{ background:"linear-gradient(160deg,#0f2027,#203a43,#2c5364)", padding:"36px 24px 22px", position:"relative", overflow:"hidden" }}>
+      <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.07)" }} />
+      <div style={{ position:"absolute", top:-12, right:-12, width:80, height:80, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.11)" }} />
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
-          <h2 style={{ margin:0, fontSize:20, color:"#1a1a2e", fontWeight:400, textTransform:"capitalize" }}>{formatDate(selectedDate)}</h2>
-          {isToday && <span style={{ fontSize:11, color:"#16A34A", fontWeight:700 }}>● HOY</span>}
+          <p style={{ margin:"0 0 4px", color:"rgba(255,255,255,0.4)", fontSize:10, letterSpacing:3, textTransform:"uppercase" }}>Mi Viaje</p>
+          <h1 style={{ margin:0, color:"#fff", fontSize:28, fontWeight:400, letterSpacing:-0.5 }}>{trip.tripName}</h1>
+          <p style={{ margin:"5px 0 0", color:"rgba(255,255,255,0.38)", fontSize:12 }}>18 Mayo — 5 Junio · {days.length} días</p>
         </div>
-        <div style={{ display:"flex", gap:8 }}>
-          <span style={{ background:"#EEEEE8", borderRadius:20, padding:"4px 12px", fontSize:12, color:"#666" }}>Día {tripDayNumber}</span>
-          {currentEvents.length > 0 && <span style={{ background:"#0f2027", borderRadius:20, padding:"4px 10px", fontSize:12, color:"#fff" }}>{currentEvents.length} {currentEvents.length===1?"evento":"eventos"}</span>}
+        <button onClick={onRefresh} disabled={loading} style={{ background:"rgba(255,255,255,0.10)", border:"none", borderRadius:12, padding:"8px 10px", cursor:"pointer", color:"#fff", fontSize:20, opacity:loading?0.4:1 }}>{loading ? "⏳" : "🔄"}</button>
+      </div>
+      <div style={{ marginTop:18, background:"rgba(255,255,255,0.08)", borderRadius:10, padding:"10px 14px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
+          <span style={{ color:"rgba(255,255,255,0.5)", fontSize:11 }}>Día {tripDayNumber} de {days.length}</span>
+          <span style={{ color:"rgba(255,255,255,0.5)", fontSize:11 }}>{pct}%</span>
+        </div>
+        <div style={{ background:"rgba(255,255,255,0.13)", borderRadius:4, height:5 }}>
+          <div style={{ background:"linear-gradient(90deg,#67e8f9,#818cf8)", borderRadius:4, height:5, width:`${pct}%`, transition:"width 0.6s" }} />
         </div>
       </div>
+      <div style={{ marginTop:8, minHeight:16, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>
+          {loading && <span style={{ color:"rgba(255,255,255,0.4)", fontSize:11 }}>🔄 Cargando…</span>}
+          {error   && <span style={{ color:"#FCA5A5", fontSize:11 }}>⚠️ {error}</span>}
+          {!loading && !error && lastSync && <span style={{ color:"rgba(255,255,255,0.3)", fontSize:11 }}>✓ Actualizado {lastSync}</span>}
+        </div>
+        {pendientes > 0 && <span style={{ background:"rgba(252,165,165,0.18)", color:"#FCD34D", fontSize:11, padding:"3px 9px", borderRadius:20, fontWeight:600 }}>⚠️ {pendientes} pendientes</span>}
+      </div>
+    </div>
+  );
+}
 
-      {/* ── EVENTS ── */}
-      <div style={{ padding:"0 18px 110px" }}>
-        {/* Skeleton */}
-        {loading && [1,2,3].map(i => (
-          <div key={i} style={{ background:"#fff", borderRadius:18, marginBottom:10, padding:16, border:"1.5px solid #EEEEE8" }}>
-            <div style={{ display:"flex", gap:12 }}>
-              <div style={{ width:46, height:46, borderRadius:13, background:"#F0F0E8" }} />
-              <div style={{ flex:1 }}>
-                <div style={{ width:"65%", height:14, background:"#F0F0E8", borderRadius:6, marginBottom:8 }} />
-                <div style={{ width:"40%", height:10, background:"#F7F6F2", borderRadius:6 }} />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Empty */}
-        {!loading && currentEvents.length === 0 && (
-          <div style={{ textAlign:"center", padding:"50px 0" }}>
-            <div style={{ fontSize:44, marginBottom:12 }}>🌅</div>
-            <p style={{ fontSize:16, color:"#bbb", margin:0 }}>{events.length===0?"Sin datos":"Día libre"}</p>
-            <p style={{ fontSize:13, color:"#ccc", margin:"6px 0 0" }}>{events.length===0?"Toca 🔄 para cargar":"Sin reservas este día"}</p>
-          </div>
-        )}
-
-        {/* Cards */}
-        {currentEvents.map(event => {
-          const meta = TYPE_META[event.type] || TYPE_META.actividad;
-          const isExp = expandedEvent === event.id;
-          const isDone = !!checked[event.id];
+// ============================================================
+// DATE STRIP
+// ============================================================
+function DateStrip({ days, selectedDate, today, eventsForDay, onSelect }) {
+  return (
+    <div style={{ background:"#fff", borderBottom:"1px solid #EEEEE8" }}>
+      <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"14px 18px", scrollbarWidth:"none" }}>
+        {days.map(day => {
+          const d = new Date(day + "T12:00:00");
+          const isSel = day === selectedDate;
+          const isTod = day === today;
+          const count = eventsForDay(day).length;
           return (
-            <div key={event.id} onClick={() => setExpandedEvent(isExp ? null : event.id)} style={{ background:isDone?"#F0FDF4":"#fff", borderRadius:18, marginBottom:10, overflow:"hidden", border:`1.5px solid ${isExp?meta.accent:isDone?"#86EFAC":"#EEEEE8"}`, cursor:"pointer", transition:"all 0.2s", boxShadow:isExp?`0 6px 24px ${meta.accent}22`:"0 1px 5px rgba(0,0,0,0.04)" }}>
-              <div style={{ display:"flex", alignItems:"center", padding:"13px 15px", gap:12 }}>
-                <div style={{ width:46, height:46, borderRadius:13, background:meta.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0, opacity:isDone?0.5:1 }}>{event.icon}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ margin:0, fontSize:15, fontWeight:600, color:isDone?"#86EFAC":"#1a1a2e", textDecoration:isDone?"line-through":"none", lineHeight:1.3 }}>{event.title}</p>
-                  <div style={{ display:"flex", gap:8, marginTop:5, flexWrap:"wrap", alignItems:"center" }}>
-                    {event.time && <span style={{ fontSize:12, color:"#999" }}>🕐 {event.time}</span>}
-                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, textTransform:"uppercase", color:meta.accent, background:meta.bg, padding:"2px 9px", borderRadius:20 }}>{meta.label}</span>
-                  </div>
-                </div>
-                <span style={{ fontSize:13, color:isExp?meta.accent:"#ddd", display:"inline-block", transform:isExp?"rotate(180deg)":"none", transition:"transform 0.2s" }}>▼</span>
-              </div>
-              {isExp && (
-                <div style={{ padding:"4px 15px 15px", borderTop:`1px solid ${meta.bg}` }}>
-                  {event.confirmation && event.confirmation !== "—" && (
-                    <div style={{ background:meta.bg, borderRadius:11, padding:"10px 13px", marginTop:10 }}>
-                      <p style={{ margin:0, fontSize:10, color:meta.dark, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase" }}>N° Confirmación</p>
-                      <p style={{ margin:"5px 0 0", fontSize:17, color:meta.dark, fontFamily:"monospace", letterSpacing:1.5 }}>{event.confirmation}</p>
-                    </div>
-                  )}
-                  {event.notes && event.notes !== "—" && (
-                    <div style={{ marginTop:9, background:"#F7F6F2", borderRadius:11, padding:"10px 13px" }}>
-                      <p style={{ margin:0, fontSize:13, color:"#555", lineHeight:1.55 }}>📝 {event.notes}</p>
-                    </div>
-                  )}
-                  <div style={{ display:"flex", gap:8, marginTop:12 }}>
-                    {event.link && event.link.startsWith("http") && (
-                      <a href={event.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ flex:1, background:meta.accent, color:"#fff", borderRadius:12, padding:"12px 0", textAlign:"center", textDecoration:"none", fontSize:13, fontWeight:700, display:"block" }}>Abrir app / web →</a>
-                    )}
-                    <button onClick={e => { e.stopPropagation(); setChecked(prev => ({...prev,[event.id]:!prev[event.id]})); }} style={{ background:isDone?"#16A34A":"#F0F0E8", color:isDone?"#fff":"#888", border:"none", borderRadius:12, padding:"12px 16px", fontSize:18, cursor:"pointer", transition:"all 0.2s" }}>{isDone?"✓":"○"}</button>
-                  </div>
+            <button key={day} onClick={() => onSelect(day)} style={{ flexShrink:0, width:50, padding:"9px 4px 8px", borderRadius:13, border:"none", cursor:"pointer", position:"relative", background:isSel?"#0f2027":isTod?"#EEF6FF":"#F7F6F2", transition:"all 0.18s" }}>
+              <p style={{ margin:0, fontSize:9, color:isSel?"rgba(255,255,255,0.5)":"#bbb", textTransform:"capitalize" }}>{d.toLocaleDateString("es-MX",{weekday:"short"})}</p>
+              <p style={{ margin:"3px 0 2px", fontSize:19, fontWeight:700, color:isSel?"#fff":isTod?"#2563EB":"#1a1a2e" }}>{d.getDate()}</p>
+              <p style={{ margin:0, fontSize:9, color:isSel?"rgba(255,255,255,0.45)":"#ccc", textTransform:"capitalize" }}>{d.toLocaleDateString("es-MX",{month:"short"})}</p>
+              {count > 0 && (
+                <div style={{ position:"absolute", bottom:5, left:"50%", transform:"translateX(-50%)", display:"flex", gap:2 }}>
+                  {[...Array(Math.min(count,3))].map((_,i) => <div key={i} style={{ width:3, height:3, borderRadius:"50%", background:isSel?"#67e8f9":"#0f2027" }} />)}
                 </div>
               )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// DAY HEADER
+// ============================================================
+function DayHeader({ selectedDate, isToday, tripDayNumber, count }) {
+  return (
+    <div style={{ padding:"18px 22px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+      <div>
+        <h2 style={{ margin:0, fontSize:20, color:"#1a1a2e", fontWeight:400, textTransform:"capitalize" }}>{formatDate(selectedDate)}</h2>
+        {isToday && <span style={{ fontSize:11, color:"#16A34A", fontWeight:700 }}>● HOY</span>}
+      </div>
+      <div style={{ display:"flex", gap:8 }}>
+        <span style={{ background:"#EEEEE8", borderRadius:20, padding:"4px 12px", fontSize:12, color:"#666" }}>Día {tripDayNumber}</span>
+        {count > 0 && <span style={{ background:"#0f2027", borderRadius:20, padding:"4px 10px", fontSize:12, color:"#fff" }}>{count} {count===1?"evento":"eventos"}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// EVENTS LIST (shared between calendar and categories)
+// ============================================================
+function EventsList({ events, loading, expandedEvent, setExpandedEvent, checked, setChecked, emptyMsg, showDate }) {
+  return (
+    <div style={{ padding:"0 18px 110px" }}>
+      {loading && [1,2,3].map(i => (
+        <div key={i} style={{ background:"#fff", borderRadius:18, marginBottom:10, padding:16, border:"1.5px solid #EEEEE8" }}>
+          <div style={{ display:"flex", gap:12 }}>
+            <div style={{ width:46, height:46, borderRadius:13, background:"#F0F0E8" }} />
+            <div style={{ flex:1 }}>
+              <div style={{ width:"65%", height:14, background:"#F0F0E8", borderRadius:6, marginBottom:8 }} />
+              <div style={{ width:"40%", height:10, background:"#F7F6F2", borderRadius:6 }} />
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {!loading && events.length === 0 && (
+        <div style={{ textAlign:"center", padding:"50px 0" }}>
+          <div style={{ fontSize:44, marginBottom:12 }}>🌅</div>
+          <p style={{ fontSize:16, color:"#bbb", margin:0 }}>{emptyMsg}</p>
+        </div>
+      )}
+
+      {events.map(event => (
+        <EventCard key={event.id} event={event} expanded={expandedEvent === event.id} onToggle={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)} done={!!checked[event.id]} onDone={() => setChecked(prev => ({...prev,[event.id]:!prev[event.id]}))} showDate={showDate} />
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// EVENT CARD
+// ============================================================
+function EventCard({ event, expanded, onToggle, done, onDone, showDate }) {
+  const meta = CATEGORIES[event.category] || CATEGORIES.actividad;
+  const isPending = event.status === "pendiente";
+  return (
+    <div onClick={onToggle} style={{
+      background: done ? "#F0FDF4" : "#fff",
+      borderRadius:18, marginBottom:10, overflow:"hidden",
+      border:`1.5px solid ${expanded ? meta.color : done ? "#86EFAC" : isPending ? "#FCD34D" : "#EEEEE8"}`,
+      cursor:"pointer", transition:"all 0.2s",
+      boxShadow: expanded ? `0 6px 24px ${meta.color}22` : "0 1px 5px rgba(0,0,0,0.04)"
+    }}>
+      <div style={{ display:"flex", alignItems:"center", padding:"13px 15px", gap:12 }}>
+        <div style={{ width:46, height:46, borderRadius:13, background:meta.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0, opacity:done?0.5:1 }}>{event.icon}</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ margin:0, fontSize:15, fontWeight:600, color:done?"#86EFAC":"#1a1a2e", textDecoration:done?"line-through":"none", lineHeight:1.3 }}>{event.title}</p>
+          <div style={{ display:"flex", gap:8, marginTop:5, flexWrap:"wrap", alignItems:"center" }}>
+            {showDate && <span style={{ fontSize:11, color:"#888", fontWeight:600 }}>{event.date.slice(8,10)} {new Date(event.date+"T12:00:00").toLocaleDateString("es-MX",{month:"short"})}</span>}
+            {event.time && <span style={{ fontSize:12, color:"#999" }}>🕐 {event.time}</span>}
+            <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, textTransform:"uppercase", color:meta.color, background:meta.bg, padding:"2px 9px", borderRadius:20 }}>{event.subcategory || meta.label}</span>
+            {isPending && <span style={{ fontSize:9, fontWeight:700, color:"#B45309", background:"#FFFBEB", padding:"2px 7px", borderRadius:20 }}>⚠ PENDIENTE</span>}
+          </div>
+        </div>
+        <span style={{ fontSize:13, color:expanded?meta.color:"#ddd", display:"inline-block", transform:expanded?"rotate(180deg)":"none", transition:"transform 0.2s" }}>▼</span>
+      </div>
+
+      {expanded && (
+        <div style={{ padding:"4px 15px 15px", borderTop:`1px solid ${meta.bg}` }}>
+          {event.place && (
+            <div style={{ marginTop:10, padding:"8px 12px", background:"#F7F6F2", borderRadius:10 }}>
+              <p style={{ margin:0, fontSize:11, color:"#888" }}>📍 Lugar</p>
+              <p style={{ margin:"3px 0 0", fontSize:13, color:"#333" }}>{event.place}</p>
+            </div>
+          )}
+          {event.confirmation && event.confirmation !== "—" && (
+            <div style={{ background:meta.bg, borderRadius:11, padding:"10px 13px", marginTop:9 }}>
+              <p style={{ margin:0, fontSize:10, color:meta.dark, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase" }}>Confirmación</p>
+              <p style={{ margin:"5px 0 0", fontSize:15, color:meta.dark, fontFamily:"monospace", letterSpacing:1 }}>{event.confirmation}</p>
+            </div>
+          )}
+          {event.cost && event.cost !== "—" && (
+            <div style={{ marginTop:9, padding:"8px 12px", background:"#FFF7ED", borderRadius:10 }}>
+              <p style={{ margin:0, fontSize:11, color:"#C2410C", fontWeight:600 }}>💰 Costo: <span style={{ fontWeight:400, color:"#666" }}>{event.cost}</span></p>
+            </div>
+          )}
+          {event.notes && event.notes !== "—" && (
+            <div style={{ marginTop:9, background:"#fff", border:"1px solid #EEEEE8", borderRadius:11, padding:"10px 13px" }}>
+              <p style={{ margin:0, fontSize:10, color:"#888", fontWeight:700, letterSpacing:1, textTransform:"uppercase" }}>📝 Notas</p>
+              <p style={{ margin:"4px 0 0", fontSize:13, color:"#444", lineHeight:1.55 }}>{event.notes}</p>
+            </div>
+          )}
+          {event.tips && (
+            <div style={{ marginTop:9, background:"#FFFBEB", border:"1px solid #FEF3C7", borderRadius:11, padding:"10px 13px" }}>
+              <p style={{ margin:0, fontSize:10, color:"#B45309", fontWeight:700, letterSpacing:1, textTransform:"uppercase" }}>💡 Tips</p>
+              <p style={{ margin:"4px 0 0", fontSize:13, color:"#92400E", lineHeight:1.55 }}>{event.tips}</p>
+            </div>
+          )}
+          <div style={{ display:"flex", gap:8, marginTop:12 }}>
+            {event.link && event.link.startsWith("http") && (
+              <a href={event.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ flex:1, background:meta.color, color:"#fff", borderRadius:12, padding:"12px 0", textAlign:"center", textDecoration:"none", fontSize:13, fontWeight:700, display:"block" }}>Abrir app / web →</a>
+            )}
+            <button onClick={e => { e.stopPropagation(); onDone(); }} style={{ background:done?"#16A34A":"#F0F0E8", color:done?"#fff":"#888", border:"none", borderRadius:12, padding:"12px 16px", fontSize:18, cursor:"pointer", transition:"all 0.2s" }}>{done?"✓":"○"}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// CATEGORIES VIEW
+// ============================================================
+function CategoriesView({ eventsByCategory, selectedCategory, setSelectedCategory, expandedEvent, setExpandedEvent, checked, setChecked, loading }) {
+  if (selectedCategory) {
+    const cat = CATEGORIES[selectedCategory];
+    const list = eventsByCategory[selectedCategory] || [];
+    return (
+      <div>
+        <div style={{ padding:"18px 22px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <button onClick={() => setSelectedCategory(null)} style={{ background:"none", border:"none", color:"#888", fontSize:14, cursor:"pointer", padding:0 }}>← Categorías</button>
+          <h2 style={{ margin:0, fontSize:18, color:cat.dark, fontWeight:600 }}>{cat.icon} {cat.label}</h2>
+          <span style={{ background:cat.bg, color:cat.dark, borderRadius:20, padding:"4px 10px", fontSize:12, fontWeight:600 }}>{list.length}</span>
+        </div>
+        <EventsList events={list} loading={loading} expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent} checked={checked} setChecked={setChecked} emptyMsg="Sin eventos" showDate={true} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding:"20px 18px 110px" }}>
+      <h2 style={{ margin:"0 0 16px 4px", fontSize:18, color:"#1a1a2e", fontWeight:400 }}>Por categoría</h2>
+      {Object.entries(CATEGORIES).map(([key, cat]) => {
+        const count = (eventsByCategory[key] || []).length;
+        const pendientes = (eventsByCategory[key] || []).filter(e => e.status === "pendiente").length;
+        return (
+          <button key={key} onClick={() => setSelectedCategory(key)} style={{ width:"100%", background:"#fff", border:"1.5px solid #EEEEE8", borderRadius:18, padding:"14px 16px", marginBottom:10, cursor:"pointer", display:"flex", alignItems:"center", gap:14, textAlign:"left", transition:"all 0.2s" }}>
+            <div style={{ width:50, height:50, borderRadius:14, background:cat.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>{cat.icon}</div>
+            <div style={{ flex:1 }}>
+              <p style={{ margin:0, fontSize:16, fontWeight:600, color:"#1a1a2e" }}>{cat.label}</p>
+              <p style={{ margin:"3px 0 0", fontSize:12, color:"#999" }}>{count} {count===1?"evento":"eventos"}{pendientes>0 && <span style={{ color:"#B45309", marginLeft:6 }}>· {pendientes} pendiente{pendientes>1?"s":""}</span>}</p>
+            </div>
+            <span style={{ fontSize:18, color:"#ccc" }}>›</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// IMPORTANT MODAL
+// ============================================================
+function ImportantModal({ onClose }) {
+  const cats = [
+    { key:"emergencia", label:"🚨 Emergencias",     bg:"#FFF1F2" },
+    { key:"internet",   label:"📶 Datos & Moneda",   bg:"#F0F9FF" },
+    { key:"documento",  label:"📄 Apps & Recursos",  bg:"#F7F6F2" },
+  ];
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={onClose}>
+      <div style={{ background:"#fff", borderRadius:"22px 22px 0 0", padding:"24px 22px 44px", width:"100%", maxWidth:480, maxHeight:"82vh", overflowY:"auto" }} onClick={e => e.stopPropagation()}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+          <h2 style={{ margin:0, fontSize:21, color:"#1a1a2e" }}>🆘 Datos Importantes</h2>
+          <button onClick={onClose} style={{ background:"#F0F0E8", border:"none", borderRadius:10, width:34, height:34, fontSize:16, cursor:"pointer" }}>✕</button>
+        </div>
+        {cats.map(({ key, label, bg }) => {
+          const items = IMPORTANT_DATA.filter(i => i.category === key);
+          if (!items.length) return null;
+          return (
+            <div key={key} style={{ marginBottom:22 }}>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#aaa", margin:"0 0 10px" }}>{label}</p>
+              {items.map(item => (
+                <div key={item.id} style={{ background:bg, borderRadius:13, padding:"12px 14px", marginBottom:8 }}>
+                  <p style={{ margin:0, fontSize:11, color:"#aaa" }}>{item.label}</p>
+                  <p style={{ margin:"4px 0 0", fontSize:15, color:"#1a1a2e", fontWeight:500 }}>{item.value}</p>
+                  {item.link && <a href={item.link} target="_blank" rel="noreferrer" style={{ display:"inline-block", marginTop:6, fontSize:12, color:"#2563EB", textDecoration:"none", fontWeight:600 }}>Abrir →</a>}
+                </div>
+              ))}
             </div>
           );
         })}
       </div>
+    </div>
+  );
+}
 
-      {/* ── IMPORTANT MODAL ── */}
-      {showImportant && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => { setShowImportant(false); setActiveTab("calendario"); }}>
-          <div style={{ background:"#fff", borderRadius:"22px 22px 0 0", padding:"24px 22px 44px", width:"100%", maxWidth:480, maxHeight:"82vh", overflowY:"auto" }} onClick={e => e.stopPropagation()}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-              <h2 style={{ margin:0, fontSize:21, color:"#1a1a2e" }}>🆘 Datos Importantes</h2>
-              <button onClick={() => { setShowImportant(false); setActiveTab("calendario"); }} style={{ background:"#F0F0E8", border:"none", borderRadius:10, width:34, height:34, fontSize:16, cursor:"pointer" }}>✕</button>
-            </div>
-            {["emergencia","internet","documento"].map(key => {
-              const items = IMPORTANT_DATA.filter(i => i.category === key);
-              if (!items.length) return null;
-              const labels = { emergencia:"🚨 Emergencias", internet:"📶 Info Útil", documento:"📄 Documentos" };
-              const bgs    = { emergencia:"#FFF1F2", internet:"#F0F9FF", documento:"#F7F6F2" };
-              return (
-                <div key={key} style={{ marginBottom:22 }}>
-                  <p style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#aaa", margin:"0 0 10px" }}>{labels[key]}</p>
-                  {items.map(item => (
-                    <div key={item.id} style={{ background:bgs[key], borderRadius:13, padding:"12px 14px", marginBottom:8 }}>
-                      <p style={{ margin:0, fontSize:11, color:"#aaa" }}>{item.label}</p>
-                      <p style={{ margin:"4px 0 0", fontSize:15, color:"#1a1a2e", fontWeight:500 }}>{item.value}</p>
-                      {item.link && <a href={item.link} target="_blank" rel="noreferrer" style={{ display:"inline-block", marginTop:6, fontSize:12, color:"#2563EB", textDecoration:"none", fontWeight:600 }}>Abrir →</a>}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
+// ============================================================
+// ADD MODAL
+// ============================================================
+function AddModal({ onClose, sheetUrl, onSync }) {
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={onClose}>
+      <div style={{ background:"#fff", borderRadius:"22px 22px 0 0", padding:"24px 22px 44px", width:"100%", maxWidth:480, maxHeight:"82vh", overflowY:"auto" }} onClick={e => e.stopPropagation()}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <h2 style={{ margin:0, fontSize:21, color:"#1a1a2e" }}>➕ Agregar evento</h2>
+          <button onClick={onClose} style={{ background:"#F0F0E8", border:"none", borderRadius:10, width:34, height:34, fontSize:16, cursor:"pointer" }}>✕</button>
         </div>
-      )}
-
-      {/* ── ADD MODAL ── */}
-      {showAdd && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", zIndex:200, display:"flex", alignItems:"flex-end", justifyContent:"center" }} onClick={() => { setShowAdd(false); setActiveTab("calendario"); }}>
-          <div style={{ background:"#fff", borderRadius:"22px 22px 0 0", padding:"24px 22px 44px", width:"100%", maxWidth:480 }} onClick={e => e.stopPropagation()}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-              <h2 style={{ margin:0, fontSize:21, color:"#1a1a2e" }}>➕ Agregar evento</h2>
-              <button onClick={() => { setShowAdd(false); setActiveTab("calendario"); }} style={{ background:"#F0F0E8", border:"none", borderRadius:10, width:34, height:34, fontSize:16, cursor:"pointer" }}>✕</button>
+        <p style={{ fontSize:14, color:"#888", margin:"0 0 16px", lineHeight:1.6 }}>
+          <strong>2 formas de agregar:</strong><br/>
+          1. Pídele a Claude que te genere la fila → copia y pega en tu Sheet.<br/>
+          2. Edita directo el Sheet con el formato de abajo. Toca 🔄 al regresar.
+        </p>
+        <div style={{ background:"#F7F6F2", borderRadius:13, padding:"14px 16px", marginBottom:16 }}>
+          <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color:"#555" }}>Columnas del Sheet:</p>
+          {[
+            ["A","Fecha","2026-05-28"],
+            ["B","Hora","21:00"],
+            ["C","Categoría","transporte / hotel / restaurante / actividad / evento"],
+            ["D","Subcategoría","vuelo / tren / cena / museo / etc"],
+            ["E","Título","Nombre"],
+            ["F","Lugar","Dirección"],
+            ["G","Confirmación","Número reserva"],
+            ["H","Costo","CHF 50 / Gratis / —"],
+            ["I","Notas","Texto principal"],
+            ["J","Tips","Recomendaciones"],
+            ["K","Link","https://..."],
+            ["L","Estado","confirmado / pendiente"],
+            ["M","Ícono","🍽️"],
+          ].map(([c,n,e])=>(
+            <div key={c} style={{ display:"flex", gap:8, marginBottom:4, alignItems:"flex-start" }}>
+              <span style={{ fontSize:11, fontWeight:700, color:"#0f2027", minWidth:14 }}>{c}</span>
+              <span style={{ fontSize:11, fontWeight:600, color:"#555", minWidth:90 }}>{n}</span>
+              <span style={{ fontSize:11, color:"#aaa" }}>{e}</span>
             </div>
-            <p style={{ fontSize:14, color:"#888", margin:"0 0 16px", lineHeight:1.6 }}>Agrega una fila en tu Google Sheet y toca 🔄 para sincronizar.</p>
-            <div style={{ background:"#F7F6F2", borderRadius:13, padding:"14px 16px", marginBottom:16 }}>
-              {[["A","Fecha","2026-05-28"],["B","Tipo","vuelo/hotel/tren/restaurante/museo/actividad/evento"],["C","Título","Nombre"],["D","Hora","21:00"],["E","Confirmación","Número reserva"],["F","Notas","Texto libre"],["G","Link","https://..."],["H","Ícono","🍽️"]].map(([col,name,ex])=>(
-                <div key={col} style={{ display:"flex", gap:8, marginBottom:5, alignItems:"flex-start" }}>
-                  <span style={{ fontSize:11, fontWeight:700, color:"#0f2027", minWidth:16 }}>{col}</span>
-                  <span style={{ fontSize:11, fontWeight:600, color:"#555", minWidth:90 }}>{name}</span>
-                  <span style={{ fontSize:11, color:"#aaa" }}>{ex}</span>
-                </div>
-              ))}
-            </div>
-            <a href={sheetsUrl} target="_blank" rel="noreferrer" style={{ display:"block", background:"#0f2027", color:"#fff", borderRadius:14, padding:"14px 0", textAlign:"center", textDecoration:"none", fontSize:15, fontWeight:700 }}>Abrir Google Sheet →</a>
-            <button onClick={() => { load(); setShowAdd(false); setActiveTab("calendario"); }} style={{ display:"block", width:"100%", marginTop:10, background:"#F7F6F2", border:"none", borderRadius:14, padding:"12px 0", fontSize:14, color:"#555", cursor:"pointer", fontWeight:600 }}>🔄 Sincronizar ahora</button>
-          </div>
+          ))}
         </div>
-      )}
-
-      {/* ── BOTTOM NAV ── */}
-      <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"rgba(255,255,255,0.96)", backdropFilter:"blur(20px)", borderTop:"1px solid #EEEEE8", padding:"10px 0 22px", display:"flex", justifyContent:"space-around" }}>
-        {[{id:"calendario",label:"Calendario",icon:"📅"},{id:"importante",label:"Importante",icon:"🆘"},{id:"agregar",label:"Agregar",icon:"➕"}].map(tab => (
-          <button key={tab.id} onClick={() => { setActiveTab(tab.id); if(tab.id==="importante") setShowImportant(true); if(tab.id==="agregar") setShowAdd(true); }} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 16px", opacity:activeTab===tab.id?1:0.38, transition:"opacity 0.2s" }}>
-            <span style={{ fontSize:24 }}>{tab.icon}</span>
-            <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:activeTab===tab.id?700:400, letterSpacing:0.5 }}>{tab.label}</span>
-            {activeTab===tab.id && <div style={{ width:5, height:5, borderRadius:"50%", background:"#0f2027" }} />}
-          </button>
-        ))}
-        {/* Botón Itinerario completo */}
-        <a href={itinerarioUrl} target="_blank" rel="noreferrer" style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 16px", textDecoration:"none", opacity:0.38 }}>
-          <span style={{ fontSize:24 }}>📋</span>
-          <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:400, letterSpacing:0.5 }}>Itinerario</span>
-        </a>
+        <a href={sheetUrl} target="_blank" rel="noreferrer" style={{ display:"block", background:"#0f2027", color:"#fff", borderRadius:14, padding:"14px 0", textAlign:"center", textDecoration:"none", fontSize:15, fontWeight:700, marginBottom:8 }}>📋 Abrir Google Sheet →</a>
+        <button onClick={() => { onSync(); onClose(); }} style={{ display:"block", width:"100%", background:"#F7F6F2", border:"none", borderRadius:14, padding:"12px 0", fontSize:14, color:"#555", cursor:"pointer", fontWeight:600 }}>🔄 Sincronizar ahora</button>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// BOTTOM NAV
+// ============================================================
+function BottomNav({ view, setView, setShowImportant, setShowAdd }) {
+  const tabs = [
+    { id:"calendario", label:"Calendario", icon:"📅" },
+    { id:"categorias", label:"Categorías", icon:"📂" },
+    { id:"claude",     label:"Claude",     icon:"🤖", external:CLAUDE_URL },
+    { id:"importante", label:"Datos",      icon:"🆘" },
+    { id:"agregar",    label:"Agregar",    icon:"➕" },
+  ];
+  return (
+    <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"rgba(255,255,255,0.96)", backdropFilter:"blur(20px)", borderTop:"1px solid #EEEEE8", padding:"10px 0 22px", display:"flex", justifyContent:"space-around" }}>
+      {tabs.map(tab => {
+        const isActive = view === tab.id;
+        if (tab.external) {
+          return (
+            <a key={tab.id} href={tab.external} target="_blank" rel="noreferrer" style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 12px", textDecoration:"none", opacity:0.55 }}>
+              <span style={{ fontSize:24 }}>{tab.icon}</span>
+              <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:400, letterSpacing:0.3 }}>{tab.label}</span>
+            </a>
+          );
+        }
+        return (
+          <button key={tab.id} onClick={() => {
+            if (tab.id === "importante") { setShowImportant(true); return; }
+            if (tab.id === "agregar")    { setShowAdd(true); return; }
+            setView(tab.id);
+          }} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3, padding:"5px 12px", opacity:isActive?1:0.4, transition:"opacity 0.2s" }}>
+            <span style={{ fontSize:24 }}>{tab.icon}</span>
+            <span style={{ fontSize:10, color:"#1a1a2e", fontWeight:isActive?700:400, letterSpacing:0.3 }}>{tab.label}</span>
+            {isActive && <div style={{ width:5, height:5, borderRadius:"50%", background:"#0f2027" }} />}
+          </button>
+        );
+      })}
     </div>
   );
 }
