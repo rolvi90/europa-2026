@@ -84,11 +84,7 @@ function parseCSV(text) {
   });
 }
 
-async function loadEvents() {
-  const res = await fetch(CSV_URL);
-  if (!res.ok) throw new Error("Error de red");
-  const text = await res.text();
-  const rows = parseCSV(text);
+function rowsToEvents(rows) {
   return rows
     .filter(r => r[0] && r[0].trim().startsWith("2026"))
     .map((row, i) => ({
@@ -107,10 +103,33 @@ async function loadEvents() {
       status: (row[11]||"confirmado").toLowerCase().trim(),
       icon: row[12] || SUBCAT_ICONS[(row[3]||"").toLowerCase().trim()] || CATEGORIES[(row[2]||"actividad").toLowerCase().trim()]?.icon || "📌",
     }))
-    .sort((a,b) => { // Orden global: fecha → hora
+    .sort((a,b) => {
       const dateComp = a.date.localeCompare(b.date);
       return dateComp !== 0 ? dateComp : sortByTime(a,b);
     });
+}
+
+async function loadEvents() {
+  // Estrategia 1: Apps Script (sin caché, en vivo)
+  const hasScript = SCRIPT_URL && !SCRIPT_URL.includes("REEMPLAZAR");
+  if (hasScript) {
+    try {
+      const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.rows) {
+          return rowsToEvents(data.rows);
+        }
+      }
+    } catch (e) {
+      console.log("Apps Script falló, usando CSV:", e);
+    }
+  }
+  // Estrategia 2: CSV publicado (fallback, puede tener caché)
+  const res = await fetch(CSV_URL + "&t=" + Date.now());
+  if (!res.ok) throw new Error("Error de red");
+  const text = await res.text();
+  return rowsToEvents(parseCSV(text));
 }
 
 // ── MAIN APP ──────────────────────────────────────────────────
