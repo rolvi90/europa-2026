@@ -56,11 +56,16 @@ function formatDate(s) {
 }
 function getTodayStr() { return new Date().toISOString().split("T")[0]; }
 
+// Normaliza hora: "9:30" → "09:30" para que ordene bien
+function normalizeTime(t) {
+  if (!t) return "99:99";
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return "99:99";
+  return m[1].padStart(2, "0") + ":" + m[2];
+}
 // Ordena por hora — eventos sin hora van al final
 function sortByTime(a, b) {
-  const ta = a.time || "99:99";
-  const tb = b.time || "99:99";
-  return ta.localeCompare(tb);
+  return normalizeTime(a.time).localeCompare(normalizeTime(b.time));
 }
 
 function parseCSV(text) {
