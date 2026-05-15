@@ -1,11 +1,15 @@
+// ============================================================
+// EUROPA 2026 — App.js v5
+// Soluciona caché agresivo en navegadores móviles
+// ============================================================
+
 import { useState, useEffect, useCallback, useMemo } from "react";
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiaw34Uflqz6zEz68uiQkl71S8_TR-s8vHwevn0FWSI5eIsel-QP-oMbJoOlXFDnZxlw/exec";
 
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYi8DGHJ3NGjrI6LM1KQLXe5ADHNKZB1iPUOZimRvKo-uQPd_n_P1Kqmncc66tbyYqUtCZDFehAsvo/pub?gid=1030451032&single=true&output=csv";
 const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1AjdLO-9VXKZ32_fkZ_b-9qHTThj1gxpQ3H6H80lHIAc/edit";
 const CLAUDE_URL = "https://claude.ai/new";
-
-// ⬇️ Reemplaza con tu URL de Google Apps Script después del deploy
-const SCRIPT_URL = "REEMPLAZAR_CON_URL_DEL_APPS_SCRIPT";
 
 const TRIP = { tripName: "Europa 2026", startDate: "2026-05-18", endDate: "2026-06-05" };
 
@@ -22,27 +26,16 @@ const SUBCAT_ICONS = {
   funicular:"🚞", tgv:"🚄", equipaje:"🧳", hotel:"🏨", checkout:"🧳",
   cena:"🍽️", almuerzo:"🍽️", desayuno:"☕", monumento:"🏛️", museo:"🎨",
   paseo:"🚶", "montaña":"🏔️", cascada:"💧", senderismo:"🥾", paisaje:"📷",
-  naturaleza:"🍇", compras:"🛍️", deportes:"🎾",
+  naturaleza:"🍇", compras:"🛍️", deportes:"🎾", esim:"📶",
 };
 
-const IMPORTANT_DATA = [
-  { id:1,  category:"emergencia", label:"Emergencias Europa",        value:"112 (equivalente al 911)" },
-  { id:2,  category:"emergencia", label:"Embajada México en París",  value:"+33 1 53 70 27 70" },
-  { id:3,  category:"emergencia", label:"Embajada México en Berna",  value:"+41 31 357 22 22" },
-  { id:4,  category:"emergencia", label:"Suiza · Policía",           value:"117 · Ambulancia 144 · Bomberos 118" },
-  { id:5,  category:"emergencia", label:"Francia · Policía",         value:"17 · SAMU 15 · Bomberos 18" },
-  { id:6,  category:"internet",   label:"Moneda Suiza",              value:"CHF · 1 CHF ≈ 1.10 USD" },
-  { id:7,  category:"internet",   label:"Moneda Francia",            value:"EUR · tarjetas aceptadas" },
-  { id:8,  category:"internet",   label:"Enchufes Suiza",            value:"Tipo J — adaptador necesario" },
-  { id:9,  category:"internet",   label:"Enchufes Francia",          value:"Tipo C/E — adaptador necesario" },
-  { id:10, category:"internet",   label:"eSIM Europa",               value:"Airalo / Holafly", link:"https://www.airalo.com" },
-  { id:11, category:"documento",  label:"Swiss Travel Pass",         value:"Activar en primer uso del tren (20 mayo)" },
-  { id:12, category:"documento",  label:"App SBB Mobile",            value:"Indispensable — horarios en vivo" },
-  { id:13, category:"documento",  label:"Webcam Zermatt",            value:"Revisar antes de subir al Glacier Paradise", link:"https://zermatt.com/webcams" },
-  { id:14, category:"documento",  label:"Pronóstico Suiza",          value:"MeteoSwiss para clima alpino", link:"https://www.meteoswiss.admin.ch" },
-];
+const IMPORTANT_CATS = {
+  emergencia: { label: "🚨 Emergencias",       bg: "#FFF1F2" },
+  seguro:     { label: "🏥 Seguros",            bg: "#F0FDF4" },
+  internet:   { label: "📶 Datos & Moneda",     bg: "#F0F9FF" },
+  documento:  { label: "📄 Apps & Recursos",    bg: "#F7F6F2" },
+};
 
-// ── Helpers ──────────────────────────────────────────────────
 function getDaysArray(start, end) {
   const days = [];
   let cur = new Date(start + "T12:00:00");
@@ -50,38 +43,23 @@ function getDaysArray(start, end) {
   while (cur <= last) { days.push(cur.toISOString().split("T")[0]); cur.setDate(cur.getDate()+1); }
   return days;
 }
+
 function formatDate(s) {
   if (!s) return "";
   return new Date(s+"T12:00:00").toLocaleDateString("es-MX",{weekday:"long",day:"numeric",month:"long"});
 }
+
 function getTodayStr() { return new Date().toISOString().split("T")[0]; }
 
-// Normaliza hora: "9:30" → "09:30" para que ordene bien
 function normalizeTime(t) {
   if (!t) return "99:99";
   const m = String(t).trim().match(/^(\d{1,2}):(\d{2})/);
   if (!m) return "99:99";
   return m[1].padStart(2, "0") + ":" + m[2];
 }
-// Ordena por hora — eventos sin hora van al final
+
 function sortByTime(a, b) {
   return normalizeTime(a.time).localeCompare(normalizeTime(b.time));
-}
-
-function parseCSV(text) {
-  const lines = text.trim().split("\n");
-  return lines.slice(1).map(line => {
-    const cols = []; let cur = "", inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch==='"' && !inQ) inQ = true;
-      else if (ch==='"' && inQ && line[i+1]==='"') { cur+='"'; i++; }
-      else if (ch==='"' && inQ) inQ = false;
-      else if (ch===',' && !inQ) { cols.push(cur.trim()); cur=""; }
-      else cur += ch;
-    }
-    cols.push(cur.trim()); return cols;
-  });
 }
 
 function rowsToEvents(rows) {
@@ -109,51 +87,68 @@ function rowsToEvents(rows) {
     });
 }
 
-async function loadEvents() {
-  // Estrategia 1: Apps Script (sin caché, en vivo)
-  const hasScript = SCRIPT_URL && !SCRIPT_URL.includes("REEMPLAZAR");
-  if (hasScript) {
-    try {
-      const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ok && data.rows) {
-          return rowsToEvents(data.rows);
-        }
-      }
-    } catch (e) {
-      console.log("Apps Script falló, usando CSV:", e);
-    }
-  }
-  // Estrategia 2: CSV publicado (fallback, puede tener caché)
-  const res = await fetch(CSV_URL + "&t=" + Date.now());
-  if (!res.ok) throw new Error("Error de red");
-  const text = await res.text();
-  return rowsToEvents(parseCSV(text));
+function rowsToImportant(rows) {
+  return rows
+    .filter(r => r[0] && r[1])
+    .map((row, i) => ({
+      id: i+1,
+      category: (row[0]||"").toLowerCase().trim(),
+      label: (row[1]||"").trim(),
+      value: (row[2]||"").trim(),
+      link: (row[3]||"").trim(),
+    }));
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────
+// ⚡ Anti-caché agresivo: timestamp + random + cache:no-store
+async function loadData() {
+  const cacheBuster = Date.now() + "-" + Math.random().toString(36).slice(2);
+  const url = SCRIPT_URL + "?t=" + cacheBuster;
+  
+  const res = await fetch(url, {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Pragma": "no-cache"
+    }
+  });
+  
+  if (!res.ok) throw new Error("Error de red: " + res.status);
+  const data = await res.json();
+  
+  if (!data.ok) throw new Error(data.error || "Error desconocido");
+  
+  return {
+    events: rowsToEvents(data.eventos || []),
+    important: rowsToImportant(data.importante || []),
+    serverTime: data.timestamp,
+  };
+}
+
 export default function App() {
-  const [events, setEvents]     = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [view, setView]         = useState("calendario");
+  const [events, setEvents]       = useState([]);
+  const [important, setImportant] = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [view, setView]           = useState("calendario");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [expandedEvent, setExpandedEvent] = useState(null);
-  const [checked, setChecked]   = useState({});
+  const [checked, setChecked]     = useState({});
   const [showImportant, setShowImportant] = useState(false);
-  const [showAdd, setShowAdd]   = useState(false);
-  const [lastSync, setLastSync] = useState(null);
+  const [showAdd, setShowAdd]     = useState(false);
+  const [lastSync, setLastSync]   = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const ev = await loadEvents();
-      setEvents(ev);
-      setLastSync(new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"}));
-    } catch { setError("Error al cargar. Toca 🔄"); }
-    finally { setLoading(false); }
+      const data = await loadData();
+      setEvents(data.events);
+      setImportant(data.important);
+      setLastSync(new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
+    } catch (e) { 
+      setError("Error: " + e.message);
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -162,10 +157,8 @@ export default function App() {
   const today = getTodayStr();
   useEffect(() => { if (!selectedDate) setSelectedDate(days.includes(today)?today:days[0]); }, [events]);
 
-  // ✅ Orden cronológico — ya viene del sort global, solo filtramos
   const eventsForDay = useCallback((date) =>
-    events.filter(e => e.date === date), // Ya ordenados por sortByTime en loadEvents
-  [events]);
+    events.filter(e => e.date === date), [events]);
 
   const eventsByCategory = useMemo(() => {
     const map = {}; Object.keys(CATEGORIES).forEach(k => { map[k] = []; });
@@ -187,14 +180,13 @@ export default function App() {
         <EventsList events={currentEvents} loading={loading} expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent} checked={checked} setChecked={setChecked} emptyMsg={events.length===0?"Sin datos. Toca 🔄":"Día libre"}/>
       </>}
       {view==="categorias" && <CategoriesView eventsByCategory={eventsByCategory} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent} checked={checked} setChecked={setChecked} loading={loading}/>}
-      {showImportant && <ImportantModal onClose={()=>{setShowImportant(false);setView("calendario");}}/>}
+      {showImportant && <ImportantModal important={important} loading={loading} onClose={()=>{setShowImportant(false);setView("calendario");}}/>}
       {showAdd && <AddModal onClose={()=>{setShowAdd(false);setView("calendario");}} onSync={load}/>}
       <BottomNav view={view} setView={setView} setShowImportant={setShowImportant} setShowAdd={setShowAdd}/>
     </div>
   );
 }
 
-// ── HEADER ────────────────────────────────────────────────────
 function Header({trip,days,tripDayNumber,loading,error,lastSync,pendientes,onRefresh}) {
   const pct = Math.round((tripDayNumber/days.length)*100);
   return (
@@ -230,7 +222,6 @@ function Header({trip,days,tripDayNumber,loading,error,lastSync,pendientes,onRef
   );
 }
 
-// ── DATE STRIP ────────────────────────────────────────────────
 function DateStrip({days,selectedDate,today,eventsForDay,onSelect}) {
   return (
     <div style={{background:"#fff",borderBottom:"1px solid #EEEEE8"}}>
@@ -253,7 +244,6 @@ function DateStrip({days,selectedDate,today,eventsForDay,onSelect}) {
   );
 }
 
-// ── DAY HEADER ────────────────────────────────────────────────
 function DayHeader({selectedDate,isToday,tripDayNumber,count}) {
   return (
     <div style={{padding:"18px 22px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -269,7 +259,6 @@ function DayHeader({selectedDate,isToday,tripDayNumber,count}) {
   );
 }
 
-// ── EVENTS LIST ───────────────────────────────────────────────
 function EventsList({events,loading,expandedEvent,setExpandedEvent,checked,setChecked,emptyMsg,showDate}) {
   return (
     <div style={{padding:"0 18px 110px"}}>
@@ -289,7 +278,6 @@ function EventsList({events,loading,expandedEvent,setExpandedEvent,checked,setCh
   );
 }
 
-// ── EVENT CARD ────────────────────────────────────────────────
 function EventCard({event,expanded,onToggle,done,onDone,showDate}) {
   const meta = CATEGORIES[event.category]||CATEGORIES.actividad;
   const isPending = event.status==="pendiente";
@@ -325,7 +313,6 @@ function EventCard({event,expanded,onToggle,done,onDone,showDate}) {
   );
 }
 
-// ── CATEGORIES VIEW ───────────────────────────────────────────
 function CategoriesView({eventsByCategory,selectedCategory,setSelectedCategory,expandedEvent,setExpandedEvent,checked,setChecked,loading}) {
   if (selectedCategory) {
     const cat=CATEGORIES[selectedCategory], list=eventsByCategory[selectedCategory]||[];
@@ -361,24 +348,26 @@ function CategoriesView({eventsByCategory,selectedCategory,setSelectedCategory,e
   );
 }
 
-// ── IMPORTANT MODAL ───────────────────────────────────────────
-function ImportantModal({onClose}) {
-  const cats=[{key:"emergencia",label:"🚨 Emergencias",bg:"#FFF1F2"},{key:"internet",label:"📶 Datos & Moneda",bg:"#F0F9FF"},{key:"documento",label:"📄 Apps & Recursos",bg:"#F7F6F2"}];
+function ImportantModal({important, loading, onClose}) {
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
       <div style={{background:"#fff",borderRadius:"22px 22px 0 0",padding:"24px 22px 44px",width:"100%",maxWidth:480,maxHeight:"82vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <h2 style={{margin:0,fontSize:21,color:"#1a1a2e"}}>🆘 Datos Importantes</h2>
           <button onClick={onClose} style={{background:"#F0F0E8",border:"none",borderRadius:10,width:34,height:34,fontSize:16,cursor:"pointer"}}>✕</button>
         </div>
-        {cats.map(({key,label,bg})=>{
-          const items=IMPORTANT_DATA.filter(i=>i.category===key);
+        <p style={{margin:"0 0 16px",fontSize:12,color:"#888"}}>Editables en la pestaña <strong>Importante</strong> de tu Sheet</p>
+        
+        {loading && <p style={{textAlign:"center",color:"#bbb",padding:"20px 0"}}>Cargando…</p>}
+        
+        {Object.entries(IMPORTANT_CATS).map(([key,catMeta])=>{
+          const items=important.filter(i=>i.category===key);
           if(!items.length) return null;
           return (
             <div key={key} style={{marginBottom:22}}>
-              <p style={{fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#aaa",margin:"0 0 10px"}}>{label}</p>
+              <p style={{fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:"#aaa",margin:"0 0 10px"}}>{catMeta.label}</p>
               {items.map(item=>(
-                <div key={item.id} style={{background:bg,borderRadius:13,padding:"12px 14px",marginBottom:8}}>
+                <div key={item.id} style={{background:catMeta.bg,borderRadius:13,padding:"12px 14px",marginBottom:8}}>
                   <p style={{margin:0,fontSize:11,color:"#aaa"}}>{item.label}</p>
                   <p style={{margin:"4px 0 0",fontSize:15,color:"#1a1a2e",fontWeight:500}}>{item.value}</p>
                   {item.link&&<a href={item.link} target="_blank" rel="noreferrer" style={{display:"inline-block",marginTop:6,fontSize:12,color:"#2563EB",textDecoration:"none",fontWeight:600}}>Abrir →</a>}
@@ -392,7 +381,6 @@ function ImportantModal({onClose}) {
   );
 }
 
-// ── ADD MODAL (Formulario) ────────────────────────────────────
 function AddModal({onClose,onSync}) {
   const today = getTodayStr();
   const [form, setForm] = useState({
@@ -404,7 +392,6 @@ function AddModal({onClose,onSync}) {
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [saveErr, setSaveErr] = useState(null);
-  const [mode, setMode]       = useState("form"); // "form" | "sheet"
 
   const set = (k,v) => setForm(prev=>({...prev,[k]:v}));
 
@@ -416,50 +403,28 @@ function AddModal({onClose,onSync}) {
     evento:     ["deportes","concierto","show","otro"],
   };
 
-  const hasScript = SCRIPT_URL && !SCRIPT_URL.includes("REEMPLAZAR");
-
   const handleSave = async () => {
     if (!form.title || !form.date) { setSaveErr("Fecha y título son obligatorios"); return; }
     setSaving(true); setSaveErr(null); setSaved(false);
-
-    if (!hasScript) {
-      // Sin script: modo manual — muestra la fila para copiar
-      setSaved("manual");
-      setSaving(false);
-      return;
-    }
-
     try {
-      // mode: no-cors es necesario para Google Apps Script, pero la respuesta es opaca.
-      // Asumimos éxito si fetch no lanza excepción.
       await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(form),
       });
-      setSaved("auto");
-      // Espera 3s para que el Sheet se actualice antes de sincronizar
-      setTimeout(() => { onSync(); }, 3000);
+      setSaved(true);
+      setTimeout(() => { onSync(); }, 2000);
     } catch (err) {
-      setSaveErr("Error de red. Mostrando fila para copiar manual:");
-      setSaved("manual");
+      setSaveErr("Error de red. Intenta de nuevo.");
     } finally {
       setSaving(false);
     }
   };
 
-  const csvRow = [
-    form.date, form.time, form.category, form.subcategory,
-    form.title, form.place, form.confirmation, form.cost,
-    form.notes, "", form.link, form.status,
-    SUBCAT_ICONS[form.subcategory]||CATEGORIES[form.category]?.icon||"📌"
-  ].map(v => v.includes?.(",") ? `"${v}"` : v).join(",");
-
-  const inp = (label, key, type="text", placeholder="") => (
+  const inp = (label, key, type, placeholder) => (
     <div style={{marginBottom:12}}>
       <label style={{display:"block",fontSize:11,fontWeight:700,color:"#666",marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>{label}</label>
-      <input type={type} value={form[key]} onChange={e=>set(key,e.target.value)} placeholder={placeholder}
+      <input type={type||"text"} value={form[key]} onChange={e=>set(key,e.target.value)} placeholder={placeholder||""}
         style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1.5px solid #E5E5E0",fontSize:14,color:"#1a1a2e",background:"#FAFAF7",outline:"none",fontFamily:"Georgia,serif"}}/>
     </div>
   );
@@ -467,24 +432,16 @@ function AddModal({onClose,onSync}) {
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
       <div style={{background:"#fff",borderRadius:"22px 22px 0 0",padding:"24px 22px 44px",width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
-
-        {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <h2 style={{margin:0,fontSize:21,color:"#1a1a2e"}}>➕ Nuevo evento</h2>
           <button onClick={onClose} style={{background:"#F0F0E8",border:"none",borderRadius:10,width:34,height:34,fontSize:16,cursor:"pointer"}}>✕</button>
         </div>
 
-        {/* Toggle form/sheet */}
-        <div style={{display:"flex",background:"#F7F6F2",borderRadius:12,padding:3,marginBottom:18}}>
-          {[["form","📝 Formulario"],["sheet","📋 Abrir Sheet"]].map(([id,label])=>(
-            <button key={id} onClick={()=>{ if(id==="sheet"){window.open(SHEET_EDIT_URL,"_blank");return;} setMode(id); }} style={{flex:1,padding:"8px 0",borderRadius:10,border:"none",cursor:"pointer",background:mode===id?"#fff":"transparent",color:"#1a1a2e",fontWeight:mode===id?700:400,fontSize:13,transition:"all 0.2s",boxShadow:mode===id?"0 1px 4px rgba(0,0,0,0.08)":"none"}}>{label}</button>
-          ))}
-        </div>
+        <a href={SHEET_EDIT_URL} target="_blank" rel="noreferrer" style={{display:"block",background:"#F7F6F2",borderRadius:10,padding:"8px 12px",marginBottom:16,fontSize:12,color:"#555",textDecoration:"none",textAlign:"center"}}>📋 O abre el Sheet directamente →</a>
 
-        {/* Form */}
         <div style={{display:"flex",gap:10,marginBottom:12}}>
           <div style={{flex:1}}>
-            <label style={{display:"block",fontSize:11,fontWeight:700,color:"#666",marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>Fecha</label>
+            <label style={{display:"block",fontSize:11,fontWeight:700,color:"#666",marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>Fecha *</label>
             <input type="date" value={form.date} onChange={e=>set("date",e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1.5px solid #E5E5E0",fontSize:14,color:"#1a1a2e",background:"#FAFAF7",outline:"none"}}/>
           </div>
           <div style={{width:90}}>
@@ -516,11 +473,11 @@ function AddModal({onClose,onSync}) {
         {inp("Título *","title","text","Ej. Cena en restaurante X")}
         {inp("Lugar","place","text","Ej. Calle Mayor 5, Zúrich")}
         {inp("N° Confirmación / Ticket","confirmation","text","Ej. HTL-12345")}
-        {inp("Costo","cost","text","Ej. CHF 50 / Gratis / —")}
+        {inp("Costo","cost","text","Ej. CHF 50")}
 
         <div style={{marginBottom:12}}>
           <label style={{display:"block",fontSize:11,fontWeight:700,color:"#666",marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>Notas</label>
-          <textarea value={form.notes} onChange={e=>set("notes",e.target.value)} placeholder="Detalles importantes..." rows={2}
+          <textarea value={form.notes} onChange={e=>set("notes",e.target.value)} placeholder="Detalles…" rows={2}
             style={{width:"100%",padding:"10px 12px",borderRadius:10,border:"1.5px solid #E5E5E0",fontSize:14,color:"#1a1a2e",background:"#FAFAF7",outline:"none",resize:"none",fontFamily:"Georgia,serif"}}/>
         </div>
 
@@ -538,39 +495,22 @@ function AddModal({onClose,onSync}) {
         </div>
 
         {saveErr && <p style={{color:"#E11D48",fontSize:13,margin:"0 0 12px",textAlign:"center"}}>{saveErr}</p>}
-
-        {saved==="auto" && (
+        {saved && (
           <div style={{background:"#F0FDF4",borderRadius:12,padding:"14px",marginBottom:12,textAlign:"center",border:"1.5px solid #86EFAC"}}>
-            <p style={{margin:0,color:"#16A34A",fontWeight:700,fontSize:15}}>✓ Enviado a Google Sheets</p>
-            <p style={{margin:"6px 0 10px",color:"#16A34A",fontSize:12}}>Sincronizando en 3 segundos…</p>
-            <button onClick={()=>{onSync();onClose();}} style={{background:"#16A34A",color:"#fff",border:"none",borderRadius:10,padding:"8px 18px",fontSize:13,fontWeight:700,cursor:"pointer"}}>Cerrar y sincronizar</button>
+            <p style={{margin:0,color:"#16A34A",fontWeight:700,fontSize:15}}>✓ Guardado en el Sheet</p>
+            <p style={{margin:"6px 0 10px",color:"#16A34A",fontSize:12}}>Sincronizando…</p>
+            <button onClick={()=>{onSync();onClose();}} style={{background:"#16A34A",color:"#fff",border:"none",borderRadius:10,padding:"8px 18px",fontSize:13,fontWeight:700,cursor:"pointer"}}>Cerrar</button>
           </div>
         )}
 
-        {saved==="manual" && (
-          <div style={{background:"#FFFBEB",borderRadius:12,padding:"12px",marginBottom:12}}>
-            <p style={{margin:"0 0 8px",fontSize:12,fontWeight:700,color:"#B45309"}}>Copia esta fila en tu Sheet (fila A):</p>
-            <p style={{margin:0,fontSize:11,color:"#92400E",fontFamily:"monospace",wordBreak:"break-all",lineHeight:1.6}}>{csvRow}</p>
-          </div>
-        )}
-
-        {!hasScript && (
-          <div style={{background:"#FFFBEB",borderRadius:12,padding:"10px 12px",marginBottom:10,fontSize:12,color:"#92400E",lineHeight:1.5}}>
-            ⚠️ <strong>Modo manual:</strong> Script no configurado. Al guardar verás la fila para copiar al Sheet.
-          </div>
-        )}
         <button onClick={handleSave} disabled={saving} style={{display:"block",width:"100%",background:"#0f2027",color:"#fff",borderRadius:14,padding:"14px 0",fontSize:15,fontWeight:700,border:"none",cursor:"pointer",opacity:saving?0.6:1}}>
-          {saving ? "Guardando…" : (hasScript ? "💾 Guardar al Sheet" : "📋 Generar fila para copiar")}
+          {saving ? "Guardando…" : "💾 Guardar al Sheet"}
         </button>
-        {saved==="manual" && (
-          <button onClick={()=>{onSync();onClose();}} style={{display:"block",width:"100%",marginTop:8,background:"#F7F6F2",border:"none",borderRadius:14,padding:"12px 0",fontSize:14,color:"#555",cursor:"pointer",fontWeight:600}}>🔄 Sincronizar app</button>
-        )}
       </div>
     </div>
   );
 }
 
-// ── BOTTOM NAV ────────────────────────────────────────────────
 function BottomNav({view,setView,setShowImportant,setShowAdd}) {
   const tabs=[
     {id:"calendario",label:"Calendario",icon:"📅"},
