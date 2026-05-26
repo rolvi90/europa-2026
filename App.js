@@ -1,3 +1,4 @@
+// v6
 // ============================================================
 // EUROPA 2026 — App.js v6
 // + Notas personales por actividad (localStorage)
