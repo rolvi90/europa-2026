@@ -120,18 +120,43 @@ function noteKey(eventId, date) { return `eu26_note_${date}_${eventId}`; }
 function diaryKey(date) { return `eu26_diary_${date}`; }
 
 // ── Carga de datos ────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const n = text[i + 1];
+    if (inQuotes) {
+      if (c === '"' && n === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ",") { row.push(field); field = ""; }
+      else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+      else if (c === "\r") { }
+      else { field += c; }
+    }
+  }
+  if (field || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
 async function loadData() {
   const cacheBuster = Date.now() + "-" + Math.random().toString(36).slice(2);
-  const url = SCRIPT_URL + "?t=" + cacheBuster;
-
-  const res = await fetch(url, {
-    method: "GET",
-    cache: "no-store",
-    headers: {
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      "Pragma": "no-cache",
-    },
-  });
+  const url = CSV_URL + "&t=" + cacheBuster;
+  const res = await fetch(url, { method: "GET", cache: "no-store" });
+  if (!res.ok) throw new Error("Error de red: " + res.status);
+  const csvText = await res.text();
+  const rows = parseCSV(csvText);
+  return {
+    events: rowsToEvents(rows.slice(1)),
+    important: [],
+    serverTime: new Date().toISOString(),
+  };
+}
 
   if (!res.ok) throw new Error("Error de red: " + res.status);
   const data = await res.json();
