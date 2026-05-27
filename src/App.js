@@ -107,19 +107,7 @@ function rowsToImportant(rows) {
     }));
 }
 
-// ── localStorage helpers ──────────────────────────────────────
-function lsGet(key) {
-  try { return localStorage.getItem(key) || ""; } catch { return ""; }
-}
-function lsSet(key, val) {
-  try { localStorage.setItem(key, val); } catch {}
-}
-// Clave para nota de una actividad específica
-function noteKey(eventId, date) { return `eu26_note_${date}_${eventId}`; }
-// Clave para el diario de un día
-function diaryKey(date) { return `eu26_diary_${date}`; }
-
-// ── Carga de datos ────────────────────────────────────────────
+// ── CSV parser ────────────────────────────────────────────────
 function parseCSV(text) {
   const rows = [];
   let row = [];
@@ -136,7 +124,7 @@ function parseCSV(text) {
       if (c === '"') { inQuotes = true; }
       else if (c === ",") { row.push(field); field = ""; }
       else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
-      else if (c === "\r") { }
+      else if (c === "\r") { /* skip */ }
       else { field += c; }
     }
   }
@@ -144,30 +132,38 @@ function parseCSV(text) {
   return rows;
 }
 
+// ── Carga de datos (vía CSV publicado) ────────────────────────
 async function loadData() {
   const cacheBuster = Date.now() + "-" + Math.random().toString(36).slice(2);
   const url = CSV_URL + "&t=" + cacheBuster;
+
   const res = await fetch(url, { method: "GET", cache: "no-store" });
   if (!res.ok) throw new Error("Error de red: " + res.status);
   const csvText = await res.text();
   const rows = parseCSV(csvText);
+  // La primera fila es header, la ignoramos
+  const dataRows = rows.slice(1);
+
   return {
-    events: rowsToEvents(rows.slice(1)),
+    events: rowsToEvents(dataRows),
     important: [],
     serverTime: new Date().toISOString(),
   };
 }
 
-  if (!res.ok) throw new Error("Error de red: " + res.status);
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.error || "Error desconocido");
-
-  return {
-    events: rowsToEvents(data.eventos || []),
-    important: rowsToImportant(data.importante || []),
-    serverTime: data.timestamp,
-  };
+// ── localStorage helpers ──────────────────────────────────────
+function lsGet(key) {
+  try { return localStorage.getItem(key) || ""; } catch { return ""; }
 }
+function lsSet(key, val) {
+  try { localStorage.setItem(key, val); } catch {}
+}
+// Clave para nota de una actividad específica
+function noteKey(eventId, date) { return `eu26_note_${date}_${eventId}`; }
+// Clave para el diario de un día
+function diaryKey(date) { return `eu26_diary_${date}`; }
+
+
 
 // ═══════════════════════════════════════════════════════════════
 // APP
