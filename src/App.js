@@ -158,23 +158,50 @@ function parseCSV(text) {
   return rows;
 }
 
-// ── Carga de datos (vía CSV publicado) ────────────────────────
+// ── Carga de datos (vía CSV publicado) — con caché y timeout ──
 async function loadData() {
   const cacheBuster = Date.now() + "-" + Math.random().toString(36).slice(2);
   const url = CSV_URL + "&t=" + cacheBuster;
 
-  const res = await fetch(url, { method: "GET", cache: "no-store" });
-  if (!res.ok) throw new Error("Error de red: " + res.status);
-  const csvText = await res.text();
-  const rows = parseCSV(csvText);
-  // La primera fila es header, la ignoramos
-  const dataRows = rows.slice(1);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-  return {
-    events: rowsToEvents(dataRows),
-    important: IMPORTANT_DATA,
-    serverTime: new Date().toISOString(),
-  };
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error("Error de red: " + res.status);
+    const csvText = await res.text();
+    const rows = parseCSV(csvText);
+
+    // Guardar copia local para uso offline
+    lsSet("eu26_cached_csv", csvText);
+    lsSet("eu26_cached_csv_ts", new Date().toISOString());
+
+    return {
+      events: rowsToEvents(rows.slice(1)),
+      important: IMPORTANT_DATA,
+      serverTime: new Date().toISOString(),
+      fromCache: false,
+    };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    // Falló o tardó demasiado — usar copia local si existe
+    const cached = lsGet("eu26_cached_csv");
+    if (cached) {
+      const rows = parseCSV(cached);
+      return {
+        events: rowsToEvents(rows.slice(1)),
+        important: IMPORTANT_DATA,
+        serverTime: lsGet("eu26_cached_csv_ts") || "",
+        fromCache: true,
+      };
+    }
+    throw e;
+  }
 }
 
 // ── localStorage helpers ──────────────────────────────────────
@@ -208,7 +235,10 @@ async function backupToSheet(payload) {
 async function fetchBackupFromSheet() {
   try {
     const url = SCRIPT_URL_BACKUP + "?t=" + Date.now();
-    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(url, { method: "GET", cache: "no-store", signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.ok) return null;
@@ -262,6 +292,72 @@ function restoreFromBackup(backup, currentAuthor) {
   return { restoredNotes, restoredDiary };
 }
 
+// Recorre todo localStorage y sube cada nota/diario al respaldo en el Sheet.
+// onProgress recibe { current, total, label } durante el proceso.
+async function syncAllLocalToSheet(author, onProgress) {
+  if (!author) return { ok: false, error: "Sin autor seleccionado" };
+
+  // Recolectar todas las claves de notas y diario
+  const items = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+
+    // Nota: eu26_note_YYYY-MM-DD_EVENTID
+    let m = key.match(/^eu26_note_(\d{4}-\d{2}-\d{2})_(\d+)$/);
+    if (m) {
+      const text = lsGet(key);
+      if (text.trim()) {
+        items.push({
+          type: "nota",
+          eventId: parseInt(m[2], 10),
+          date: m[1],
+          author,
+          text,
+          label: `Nota ${m[1]}`,
+        });
+      }
+      continue;
+    }
+
+    // Diario: eu26_diary_YYYY-MM-DD
+    m = key.match(/^eu26_diary_(\d{4}-\d{2}-\d{2})$/);
+    if (m) {
+      const text = lsGet(key);
+      if (text.trim()) {
+        items.push({
+          type: "diario",
+          date: m[1],
+          author,
+          text,
+          label: `Diario ${m[1]}`,
+        });
+      }
+    }
+  }
+
+  const total = items.length;
+  if (total === 0) return { ok: true, total: 0, uploaded: 0 };
+
+  let uploaded = 0;
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    onProgress && onProgress({ current: i + 1, total, label: it.label });
+    const ok = await backupToSheet({
+      type: it.type,
+      eventId: it.eventId,
+      date: it.date,
+      author: it.author,
+      text: it.text,
+    });
+    if (ok) uploaded++;
+    // Pequeña pausa para no saturar al Apps Script
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  return { ok: true, total, uploaded };
+}
+
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -285,6 +381,8 @@ export default function App() {
   // Autor actual (Rolando / Gaby) — persistido en localStorage
   const [author, setAuthor]           = useState(() => lsGet(AUTHOR_KEY) || "");
   const [backupStatus, setBackupStatus] = useState("");
+  const [fromCache, setFromCache]     = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -292,6 +390,7 @@ export default function App() {
       const data = await loadData();
       setEvents(data.events);
       setImportant(data.important);
+      setFromCache(!!data.fromCache);
       setLastSync(new Date().toLocaleTimeString("es-MX", {
         hour: "2-digit", minute: "2-digit", second: "2-digit",
       }));
@@ -371,8 +470,8 @@ export default function App() {
         trip={TRIP} days={days} tripDayNumber={tripDayNumber}
         loading={loading} error={error} lastSync={lastSync}
         pendientes={pendientes} onRefresh={load}
-        author={author} backupStatus={backupStatus}
-        onChangeAuthor={() => setAuthor("")}
+        author={author} backupStatus={backupStatus} fromCache={fromCache}
+        onChangeAuthor={() => setShowUserModal(true)}
       />
 
       {view === "calendario" && <>
@@ -422,6 +521,17 @@ export default function App() {
           onSync={load}
         />
       )}
+      {showUserModal && (
+        <UserModal
+          author={author}
+          onClose={() => setShowUserModal(false)}
+          onChangeAuthor={() => {
+            lsSet(AUTHOR_KEY, "");
+            setAuthor("");
+            setShowUserModal(false);
+          }}
+        />
+      )}
 
       <BottomNav
         view={view} setView={setView}
@@ -435,7 +545,7 @@ export default function App() {
 // ═══════════════════════════════════════════════════════════════
 // HEADER
 // ═══════════════════════════════════════════════════════════════
-function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendientes, onRefresh, author, backupStatus, onChangeAuthor }) {
+function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendientes, onRefresh, author, backupStatus, fromCache, onChangeAuthor }) {
   const pct = Math.round((tripDayNumber / days.length) * 100);
   return (
     <div style={{
@@ -484,7 +594,8 @@ function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendiente
           {loading && <span style={{ color:"rgba(255,255,255,0.4)",fontSize:11 }}>🔄 Cargando…</span>}
           {error   && <span style={{ color:"#FCA5A5",fontSize:11 }}>⚠️ {error}</span>}
           {!loading && !error && backupStatus && <span style={{ color:"rgba(167,243,208,0.85)",fontSize:11 }}>{backupStatus}</span>}
-          {!loading && !error && !backupStatus && lastSync && <span style={{ color:"rgba(255,255,255,0.3)",fontSize:11 }}>✓ {lastSync}</span>}
+          {!loading && !error && !backupStatus && fromCache && <span style={{ color:"#FCD34D",fontSize:11 }}>📡 Datos sin conexión</span>}
+          {!loading && !error && !backupStatus && !fromCache && lastSync && <span style={{ color:"rgba(255,255,255,0.3)",fontSize:11 }}>✓ {lastSync}</span>}
         </div>
         {pendientes > 0 && (
           <span style={{ background:"rgba(252,165,165,0.18)",color:"#FCD34D",fontSize:11,padding:"3px 9px",borderRadius:20,fontWeight:600 }}>
@@ -1365,6 +1476,154 @@ function AuthorPicker({ onSelect }) {
         <p style={{ margin:"18px 0 0", fontSize:11, color:"#aaa" }}>
           Podrás cambiar de usuario más tarde tocando tu nombre arriba.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USER MODAL — abre al tocar el chip del autor en el header
+// ═══════════════════════════════════════════════════════════════
+function UserModal({ author, onClose, onChangeAuthor }) {
+  const [syncing, setSyncing]   = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
+  const [result, setResult]     = useState(null);
+  const [confirmChange, setConfirmChange] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setResult(null);
+    setProgress({ current: 0, total: 0, label: "Preparando…" });
+    const r = await syncAllLocalToSheet(author, (p) => setProgress(p));
+    setSyncing(false);
+    setResult(r);
+  };
+
+  return (
+    <div
+      style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center" }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background:"#fff",borderRadius:"22px 22px 0 0",padding:"24px 22px 44px",width:"100%",maxWidth:480 }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18 }}>
+          <h2 style={{ margin:0,fontSize:21,color:"#1a1a2e" }}>✍️ {author}</h2>
+          <button onClick={onClose} style={{ background:"#F0F0E8",border:"none",borderRadius:10,width:34,height:34,fontSize:16,cursor:"pointer" }}>✕</button>
+        </div>
+
+        {/* Sección: Sincronizar todo */}
+        <div style={{
+          background:"#EEF2FF",
+          border:"1.5px solid #C7D2FE",
+          borderRadius:14,
+          padding:"14px 16px",
+          marginBottom:14,
+        }}>
+          <p style={{ margin:"0 0 6px",fontSize:14,fontWeight:600,color:"#3730A3" }}>
+            ☁️ Subir notas y diario al Sheet
+          </p>
+          <p style={{ margin:"0 0 12px",fontSize:12,color:"#4338CA",lineHeight:1.5 }}>
+            Sube al respaldo todas las notas y entradas de diario que tienes
+            guardadas en este dispositivo. Útil para recuperar lo escrito
+            antes de activar el respaldo automático.
+          </p>
+
+          {syncing && (
+            <div style={{ background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:8 }}>
+              <p style={{ margin:0,fontSize:12,color:"#3730A3",fontWeight:600 }}>
+                Subiendo {progress.current} / {progress.total}…
+              </p>
+              <p style={{ margin:"3px 0 0",fontSize:11,color:"#6366F1" }}>
+                {progress.label}
+              </p>
+              <div style={{ marginTop:7,background:"#E0E7FF",borderRadius:4,height:4,overflow:"hidden" }}>
+                <div style={{
+                  background:"#6366F1",height:4,
+                  width: progress.total ? `${(progress.current / progress.total) * 100}%` : "0%",
+                  transition:"width 0.2s",
+                }}/>
+              </div>
+            </div>
+          )}
+
+          {result && !syncing && (
+            <div style={{
+              background: result.total === 0 ? "#FEF3C7" : "#DCFCE7",
+              borderRadius:10,padding:"10px 12px",marginBottom:8,
+            }}>
+              <p style={{ margin:0,fontSize:13,fontWeight:700,color: result.total === 0 ? "#92400E" : "#15803D" }}>
+                {result.total === 0
+                  ? "Nada que sincronizar"
+                  : `✓ ${result.uploaded} de ${result.total} subidas`}
+              </p>
+              {result.total > 0 && result.uploaded < result.total && (
+                <p style={{ margin:"3px 0 0",fontSize:11,color:"#15803D" }}>
+                  Algunas fallaron — puedes reintentar.
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            style={{
+              width:"100%",
+              background: syncing ? "#A5B4FC" : "#4F46E5",
+              color:"#fff",border:"none",borderRadius:11,
+              padding:"11px 0",fontSize:13,fontWeight:700,
+              cursor: syncing ? "default" : "pointer",
+            }}
+          >
+            {syncing ? "Subiendo…" : "Subir todo ahora"}
+          </button>
+        </div>
+
+        {/* Sección: Cambiar de usuario */}
+        <div style={{
+          background:"#F7F6F2",
+          borderRadius:14,
+          padding:"14px 16px",
+          marginBottom:8,
+        }}>
+          <p style={{ margin:"0 0 6px",fontSize:14,fontWeight:600,color:"#1a1a2e" }}>
+            👤 Cambiar usuario
+          </p>
+          <p style={{ margin:"0 0 12px",fontSize:12,color:"#666",lineHeight:1.5 }}>
+            Cambia el autor con el que se firman las notas y diario en
+            este dispositivo. Las notas existentes localmente seguirán visibles.
+          </p>
+
+          {!confirmChange ? (
+            <button
+              onClick={() => setConfirmChange(true)}
+              style={{
+                width:"100%",background:"#fff",border:"1.5px solid #1a1a2e",
+                borderRadius:11,padding:"10px 0",fontSize:13,fontWeight:600,
+                color:"#1a1a2e",cursor:"pointer",
+              }}
+            >
+              Cambiar de {author} a otro
+            </button>
+          ) : (
+            <div style={{ display:"flex",gap:8 }}>
+              <button
+                onClick={() => setConfirmChange(false)}
+                style={{ flex:1,background:"#fff",border:"1.5px solid #ddd",borderRadius:11,padding:"10px 0",fontSize:12,color:"#888",cursor:"pointer" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={onChangeAuthor}
+                style={{ flex:1,background:"#0f2027",color:"#fff",border:"none",borderRadius:11,padding:"10px 0",fontSize:12,fontWeight:700,cursor:"pointer" }}
+              >
+                Sí, cambiar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
