@@ -8,11 +8,37 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiaw34Uflqz6zEz68uiQkl71S8_TR-s8vHwevn0FWSI5eIsel-QP-oMbJoOlXFDnZxlw/exec";
+const SCRIPT_URL_BACKUP = "https://script.google.com/macros/s/AKfycby8nF3IbMaYn7wf9UfceTw4M79Cny1mDwEcN98tQlI8SMvd4AN1yFoDPagyC20mtCCynw/exec";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYi8DGHJ3NGjrI6LM1KQLXe5ADHNKZB1iPUOZimRvKo-uQPd_n_P1Kqmncc66tbyYqUtCZDFehAsvo/pub?gid=1030451032&single=true&output=csv";
 const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1AjdLO-9VXKZ32_fkZ_b-9qHTThj1gxpQ3H6H80lHIAc/edit";
 const CLAUDE_URL = "https://claude.ai/new";
 
+const AUTHORS = ["Rolando", "Gaby"];
+const AUTHOR_KEY = "eu26_author";
+
 const TRIP = { tripName: "Europa 2026", startDate: "2026-05-18", endDate: "2026-06-05" };
+
+// Datos importantes — editables directamente en este archivo si cambian
+const IMPORTANT_DATA = [
+  { category: "emergencia", label: "Emergencias Europa",      value: "112 (equivalente al 911)",         link: "" },
+  { category: "emergencia", label: "Embajada México en París", value: "+33 1 53 70 27 70",                link: "" },
+  { category: "emergencia", label: "Embajada México en Berna", value: "+41 31 357 22 22",                 link: "" },
+  { category: "emergencia", label: "Suiza - Policía",         value: "117",                              link: "" },
+  { category: "emergencia", label: "Suiza - Ambulancia",      value: "144",                              link: "" },
+  { category: "emergencia", label: "Suiza - Bomberos",        value: "118",                              link: "" },
+  { category: "emergencia", label: "Francia - Policía",       value: "17",                               link: "" },
+  { category: "emergencia", label: "Francia - SAMU",          value: "15",                               link: "" },
+  { category: "emergencia", label: "Francia - Bomberos",      value: "18",                               link: "" },
+  { category: "seguro",     label: "Seguro médico AMEX",      value: "52 8183194040",                    link: "https://drive.google.com/file/d/1qS6A-yqMCCw6ip6BRAYKo53KbpSFCb8n/view?usp=drive_link" },
+  { category: "internet",   label: "eSIM Airalo - Rolando",   value: "ICCID: 8910300000048291457",       link: "https://www.airalo.com" },
+  { category: "internet",   label: "eSIM Airalo - Gaby",      value: "ICCID: 8910300000048288126",       link: "https://www.airalo.com" },
+  { category: "internet",   label: "Moneda Suiza",            value: "CHF · 1 CHF ≈ 1.10 USD",           link: "" },
+  { category: "internet",   label: "Moneda Francia",          value: "EUR · tarjetas aceptadas",         link: "" },
+  { category: "internet",   label: "Enchufes Suiza",          value: "Tipo J — adaptador necesario",     link: "" },
+  { category: "internet",   label: "Enchufes Francia",        value: "Tipo C/E — adaptador necesario",   link: "" },
+  { category: "documento",  label: "Swiss Travel Pass GM",    value: "Activar primer uso del tren (20 mayo)", link: "https://drive.google.com/file/d/1b5R74Lk_7AGsE1cy_3nnzs-H4ZeohAH4/view?usp=drivesdk" },
+  { category: "documento",  label: "Swiss Travel Pass RV",    value: "Activar primer uso del tren (20 mayo)", link: "https://drive.google.com/file/d/10FXAcN0mRJTV4FHRohSdvIW8XuqCRezt/view?usp=drivesdk" },
+].map((it, i) => ({ ...it, id: i + 1 }));
 
 const CATEGORIES = {
   transporte:  { color: "#2563EB", bg: "#E8F4FD", dark: "#1E40AF", label: "Transporte", icon: "🚆" },
@@ -146,7 +172,7 @@ async function loadData() {
 
   return {
     events: rowsToEvents(dataRows),
-    important: [],
+    important: IMPORTANT_DATA,
     serverTime: new Date().toISOString(),
   };
 }
@@ -162,6 +188,79 @@ function lsSet(key, val) {
 function noteKey(eventId, date) { return `eu26_note_${date}_${eventId}`; }
 // Clave para el diario de un día
 function diaryKey(date) { return `eu26_diary_${date}`; }
+
+// ── Sincronización con Google Sheet (respaldo en la nube) ─────
+async function backupToSheet(payload) {
+  // payload: { type:"nota"|"diario", eventId?, date, author, text }
+  try {
+    await fetch(SCRIPT_URL_BACKUP, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function fetchBackupFromSheet() {
+  try {
+    const url = SCRIPT_URL_BACKUP + "?t=" + Date.now();
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.ok) return null;
+    return { notas: data.notas || [], diario: data.diario || [] };
+  } catch (e) {
+    return null;
+  }
+}
+
+// Restaura notas y diario desde el respaldo solo si localStorage está vacío
+// Para el autor actual. Si hay varios registros del mismo autor, usa el más reciente.
+function restoreFromBackup(backup, currentAuthor) {
+  if (!backup) return { restoredNotes: 0, restoredDiary: 0 };
+  let restoredNotes = 0;
+  let restoredDiary = 0;
+
+  // Notas: [Timestamp, EventoID, Fecha, Autor, Texto]
+  const notesByKey = {};
+  (backup.notas || []).forEach(row => {
+    const [ts, eventId, date, author, text] = row;
+    if (!text || author !== currentAuthor) return;
+    const k = noteKey(eventId, date);
+    if (!notesByKey[k] || notesByKey[k].ts < ts) {
+      notesByKey[k] = { ts, text };
+    }
+  });
+  Object.entries(notesByKey).forEach(([k, { text }]) => {
+    if (!lsGet(k).trim()) {
+      lsSet(k, text);
+      restoredNotes++;
+    }
+  });
+
+  // Diario: [Timestamp, Fecha, Autor, Texto]
+  const diaryByKey = {};
+  (backup.diario || []).forEach(row => {
+    const [ts, date, author, text] = row;
+    if (!text || author !== currentAuthor) return;
+    const k = diaryKey(date);
+    if (!diaryByKey[k] || diaryByKey[k].ts < ts) {
+      diaryByKey[k] = { ts, text };
+    }
+  });
+  Object.entries(diaryByKey).forEach(([k, { text }]) => {
+    if (!lsGet(k).trim()) {
+      lsSet(k, text);
+      restoredDiary++;
+    }
+  });
+
+  return { restoredNotes, restoredDiary };
+}
 
 
 
@@ -183,6 +282,9 @@ export default function App() {
   const [lastSync, setLastSync]       = useState(null);
   // notesTick fuerza re-render de badges de notas al guardar
   const [notesTick, setNotesTick]     = useState(0);
+  // Autor actual (Rolando / Gaby) — persistido en localStorage
+  const [author, setAuthor]           = useState(() => lsGet(AUTHOR_KEY) || "");
+  const [backupStatus, setBackupStatus] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -201,6 +303,28 @@ export default function App() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Cuando ya hay autor seleccionado, intentar restaurar notas/diario perdidos
+  useEffect(() => {
+    if (!author) return;
+    (async () => {
+      setBackupStatus("Verificando respaldo…");
+      const backup = await fetchBackupFromSheet();
+      if (backup) {
+        const { restoredNotes, restoredDiary } = restoreFromBackup(backup, author);
+        const total = restoredNotes + restoredDiary;
+        if (total > 0) {
+          setBackupStatus(`✓ Restaurado: ${restoredNotes} notas, ${restoredDiary} diario`);
+          setNotesTick(t => t + 1);
+        } else {
+          setBackupStatus("✓ Respaldo OK");
+        }
+      } else {
+        setBackupStatus("⚠ Sin conexión a respaldo");
+      }
+      setTimeout(() => setBackupStatus(""), 4000);
+    })();
+  }, [author]);
 
   const days = getDaysArray(TRIP.startDate, TRIP.endDate);
   const today = getTodayStr();
@@ -236,10 +360,19 @@ export default function App() {
       margin: "0 auto",
       boxShadow: "0 0 80px rgba(0,0,0,0.10)",
     }}>
+      {!author && (
+        <AuthorPicker onSelect={(name) => {
+          lsSet(AUTHOR_KEY, name);
+          setAuthor(name);
+        }}/>
+      )}
+
       <Header
         trip={TRIP} days={days} tripDayNumber={tripDayNumber}
         loading={loading} error={error} lastSync={lastSync}
         pendientes={pendientes} onRefresh={load}
+        author={author} backupStatus={backupStatus}
+        onChangeAuthor={() => setAuthor("")}
       />
 
       {view === "calendario" && <>
@@ -258,9 +391,10 @@ export default function App() {
           checked={checked} setChecked={setChecked}
           emptyMsg={events.length === 0 ? "Sin datos. Toca 🔄" : "Día libre 🌿"}
           notesTick={notesTick} onNoteSaved={onNoteSaved}
+          author={author}
         />
         {selectedDate && (
-          <DiaryCard date={selectedDate} />
+          <DiaryCard date={selectedDate} author={author} />
         )}
       </>}
 
@@ -272,6 +406,7 @@ export default function App() {
           expandedEvent={expandedEvent} setExpandedEvent={setExpandedEvent}
           checked={checked} setChecked={setChecked}
           loading={loading} notesTick={notesTick} onNoteSaved={onNoteSaved}
+          author={author}
         />
       )}
 
@@ -300,7 +435,7 @@ export default function App() {
 // ═══════════════════════════════════════════════════════════════
 // HEADER
 // ═══════════════════════════════════════════════════════════════
-function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendientes, onRefresh }) {
+function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendientes, onRefresh, author, backupStatus, onChangeAuthor }) {
   const pct = Math.round((tripDayNumber / days.length) * 100);
   return (
     <div style={{
@@ -318,10 +453,20 @@ function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendiente
           <h1 style={{ margin:0,color:"#fff",fontSize:28,fontWeight:400,letterSpacing:-0.5 }}>{trip.tripName}</h1>
           <p style={{ margin:"5px 0 0",color:"rgba(255,255,255,0.38)",fontSize:12 }}>18 Mayo – 5 Junio · {days.length} días</p>
         </div>
-        <button
-          onClick={onRefresh} disabled={loading}
-          style={{ background:"rgba(255,255,255,0.10)",border:"none",borderRadius:12,padding:"8px 10px",cursor:"pointer",color:"#fff",fontSize:20,opacity:loading?0.4:1 }}
-        >{loading ? "⏳" : "🔄"}</button>
+        <div style={{ display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end" }}>
+          <button
+            onClick={onRefresh} disabled={loading}
+            style={{ background:"rgba(255,255,255,0.10)",border:"none",borderRadius:12,padding:"8px 10px",cursor:"pointer",color:"#fff",fontSize:20,opacity:loading?0.4:1 }}
+          >{loading ? "⏳" : "🔄"}</button>
+          {author && (
+            <button
+              onClick={onChangeAuthor}
+              style={{ background:"rgba(255,255,255,0.10)",border:"none",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"#fff",fontSize:11,fontWeight:600 }}
+            >
+              ✍️ {author}
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ marginTop:18,background:"rgba(255,255,255,0.08)",borderRadius:10,padding:"10px 14px" }}>
@@ -338,7 +483,8 @@ function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendiente
         <div>
           {loading && <span style={{ color:"rgba(255,255,255,0.4)",fontSize:11 }}>🔄 Cargando…</span>}
           {error   && <span style={{ color:"#FCA5A5",fontSize:11 }}>⚠️ {error}</span>}
-          {!loading && !error && lastSync && <span style={{ color:"rgba(255,255,255,0.3)",fontSize:11 }}>✓ {lastSync}</span>}
+          {!loading && !error && backupStatus && <span style={{ color:"rgba(167,243,208,0.85)",fontSize:11 }}>{backupStatus}</span>}
+          {!loading && !error && !backupStatus && lastSync && <span style={{ color:"rgba(255,255,255,0.3)",fontSize:11 }}>✓ {lastSync}</span>}
         </div>
         {pendientes > 0 && (
           <span style={{ background:"rgba(252,165,165,0.18)",color:"#FCD34D",fontSize:11,padding:"3px 9px",borderRadius:20,fontWeight:600 }}>
@@ -439,7 +585,7 @@ function DayHeader({ selectedDate, isToday, tripDayNumber, count }) {
 // ═══════════════════════════════════════════════════════════════
 function EventsList({
   events, loading, expandedEvent, setExpandedEvent,
-  checked, setChecked, emptyMsg, showDate, notesTick, onNoteSaved,
+  checked, setChecked, emptyMsg, showDate, notesTick, onNoteSaved, author,
 }) {
   return (
     <div style={{ padding:"0 18px 0" }}>
@@ -470,6 +616,7 @@ function EventsList({
           showDate={showDate}
           notesTick={notesTick}
           onNoteSaved={onNoteSaved}
+          author={author}
         />
       ))}
     </div>
@@ -479,10 +626,11 @@ function EventsList({
 // ═══════════════════════════════════════════════════════════════
 // EVENT CARD — con nota personal
 // ═══════════════════════════════════════════════════════════════
-function EventCard({ event, expanded, onToggle, done, onDone, showDate, notesTick, onNoteSaved }) {
+function EventCard({ event, expanded, onToggle, done, onDone, showDate, notesTick, onNoteSaved, author }) {
   const meta      = CATEGORIES[event.category] || CATEGORIES.actividad;
   const isPending = event.status === "pendiente";
   const [noteText, setNoteText] = useState(() => lsGet(noteKey(event.id, event.date)));
+  const [noteSync, setNoteSync] = useState(""); // "saving" | "saved" | ""
   const hasNote = noteText.trim().length > 0;
 
   // Si cambia notesTick (se guardó una nota en otro card), forzamos re-lectura del badge
@@ -491,9 +639,21 @@ function EventCard({ event, expanded, onToggle, done, onDone, showDate, notesTic
     setNoteText(saved);
   }, [notesTick]);
 
-  const handleNoteBlur = () => {
+  const handleNoteBlur = async () => {
     lsSet(noteKey(event.id, event.date), noteText);
     onNoteSaved && onNoteSaved();
+    if (noteText.trim() && author) {
+      setNoteSync("saving");
+      await backupToSheet({
+        type: "nota",
+        eventId: event.id,
+        date: event.date,
+        author,
+        text: noteText,
+      });
+      setNoteSync("saved");
+      setTimeout(() => setNoteSync(""), 2500);
+    }
   };
 
   return (
@@ -633,7 +793,10 @@ function EventCard({ event, expanded, onToggle, done, onDone, showDate, notesTic
               }}
             />
             <p style={{ margin:"5px 0 0",fontSize:10,color:"#A78BFA",textAlign:"right" }}>
-              {noteText.trim().length > 0 ? "✓ guardado al salir del campo" : "Se guarda al salir del campo"}
+              {noteSync === "saving" ? "↻ respaldando en la nube…"
+                : noteSync === "saved" ? "✓ guardado + respaldado"
+                : noteText.trim().length > 0 ? "✓ guardado al salir del campo"
+                : "Se guarda al salir del campo"}
             </p>
           </div>
 
@@ -675,9 +838,10 @@ function EventCard({ event, expanded, onToggle, done, onDone, showDate, notesTic
 // ═══════════════════════════════════════════════════════════════
 // DIARY CARD — diario del día (al final de la lista)
 // ═══════════════════════════════════════════════════════════════
-function DiaryCard({ date }) {
+function DiaryCard({ date, author }) {
   const [open, setOpen]   = useState(false);
   const [text, setText]   = useState(() => lsGet(diaryKey(date)));
+  const [diarySync, setDiarySync] = useState(""); // "saving" | "saved" | ""
   const textRef           = useRef(null);
 
   // Recarga el texto cuando cambia el día
@@ -691,8 +855,19 @@ function DiaryCard({ date }) {
     if (open && textRef.current) textRef.current.focus();
   }, [open]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     lsSet(diaryKey(date), text);
+    if (text.trim() && author) {
+      setDiarySync("saving");
+      await backupToSheet({
+        type: "diario",
+        date,
+        author,
+        text,
+      });
+      setDiarySync("saved");
+      setTimeout(() => setDiarySync(""), 2500);
+    }
   };
 
   const hasEntry  = text.trim().length > 0;
@@ -784,9 +959,11 @@ function DiaryCard({ date }) {
               Guardar ✓
             </button>
           </div>
-          {hasEntry && (
+          {(hasEntry || diarySync) && (
             <p style={{ margin:"8px 0 0",fontSize:11,color:"#D97706",textAlign:"center" }}>
-              ✓ Guardado automáticamente al salir del campo
+              {diarySync === "saving" ? "↻ respaldando en la nube…"
+                : diarySync === "saved" ? "✓ guardado + respaldado en Sheet"
+                : "✓ Guardado automáticamente al salir del campo"}
             </p>
           )}
         </div>
@@ -801,7 +978,7 @@ function DiaryCard({ date }) {
 function CategoriesView({
   eventsByCategory, selectedCategory, setSelectedCategory,
   expandedEvent, setExpandedEvent, checked, setChecked,
-  loading, notesTick, onNoteSaved,
+  loading, notesTick, onNoteSaved, author,
 }) {
   if (selectedCategory) {
     const cat  = CATEGORIES[selectedCategory];
@@ -826,6 +1003,7 @@ function CategoriesView({
           checked={checked} setChecked={setChecked}
           emptyMsg="Sin eventos" showDate={true}
           notesTick={notesTick} onNoteSaved={onNoteSaved}
+          author={author}
         />
       </div>
     );
@@ -1137,6 +1315,57 @@ function BottomNav({ view, setView, setShowImportant, setShowAdd }) {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTHOR PICKER — modal de primera apertura
+// ═══════════════════════════════════════════════════════════════
+function AuthorPicker({ onSelect }) {
+  return (
+    <div
+      style={{
+        position:"fixed", inset:0, background:"rgba(15,32,39,0.94)",
+        zIndex:300, display:"flex", alignItems:"center", justifyContent:"center",
+        padding:24,
+      }}
+    >
+      <div style={{
+        background:"#fff", borderRadius:22, padding:"28px 24px 24px",
+        width:"100%", maxWidth:380, textAlign:"center",
+        boxShadow:"0 20px 60px rgba(0,0,0,0.4)",
+      }}>
+        <div style={{ fontSize:42, marginBottom:8 }}>✍️</div>
+        <h2 style={{ margin:"0 0 6px", fontSize:22, color:"#1a1a2e", fontWeight:500 }}>
+          ¿Quién está usando la app?
+        </h2>
+        <p style={{ margin:"0 0 22px", fontSize:13, color:"#888", lineHeight:1.5 }}>
+          Tus notas y entradas del diario se respaldarán
+          automáticamente en el Sheet con tu nombre.
+        </p>
+        <div style={{ display:"flex", gap:10 }}>
+          {AUTHORS.map(name => (
+            <button
+              key={name}
+              onClick={() => onSelect(name)}
+              style={{
+                flex:1, padding:"16px 0",
+                borderRadius:14, border:"none",
+                background:"linear-gradient(135deg,#0f2027,#2c5364)",
+                color:"#fff", fontSize:16, fontWeight:600,
+                cursor:"pointer",
+                fontFamily:"Georgia, serif",
+              }}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+        <p style={{ margin:"18px 0 0", fontSize:11, color:"#aaa" }}>
+          Podrás cambiar de usuario más tarde tocando tu nombre arriba.
+        </p>
+      </div>
     </div>
   );
 }
