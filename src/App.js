@@ -554,10 +554,10 @@ function Header({ trip, days, tripDayNumber, loading, error, lastSync, pendiente
       position: "relative",
       overflow: "hidden",
     }}>
-      <div style={{ position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.07)" }}/>
-      <div style={{ position:"absolute",top:-12,right:-12,width:80,height:80,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.11)" }}/>
+      <div style={{ position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.07)",pointerEvents:"none" }}/>
+      <div style={{ position:"absolute",top:-12,right:-12,width:80,height:80,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.11)",pointerEvents:"none" }}/>
 
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", position:"relative", zIndex:1 }}>
         <div>
           <p style={{ margin:"0 0 4px",color:"rgba(255,255,255,0.4)",fontSize:10,letterSpacing:3,textTransform:"uppercase" }}>Mi Viaje</p>
           <h1 style={{ margin:0,color:"#fff",fontSize:28,fontWeight:400,letterSpacing:-0.5 }}>{trip.tripName}</h1>
