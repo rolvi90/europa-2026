@@ -270,6 +270,7 @@
 
   /* memories nested inside an era */
   .memory{
+    position:relative;
     margin-top:14px;
     background:#f4f7ff;
     border:1px dashed #c9d6f7;
@@ -282,6 +283,46 @@
     box-shadow:0 0 0 3px rgba(227,196,106,.35);
     background:#fdf8ec;
   }
+  .memory-user{
+    border-style:solid;
+    border-color:var(--sapphire-light);
+    background:#eef3ff;
+    padding-right:36px;
+  }
+  .memory-user.card-highlight{
+    border-color:var(--gold);
+    background:#fdf8ec;
+  }
+  .memory-date{
+    color:var(--muted);
+    font-weight:400;
+    font-size:12px;
+  }
+  .memory-author{
+    margin-top:8px;
+    font-size:11.5px;
+    font-style:italic;
+    color:var(--muted);
+    text-align:right;
+  }
+  .memory-delete{
+    position:absolute;
+    top:8px; right:8px;
+    border:none;
+    background:transparent;
+    font-size:14px;
+    line-height:1;
+    cursor:pointer;
+    opacity:.4;
+    padding:4px;
+    transition:opacity .2s ease;
+  }
+  .memory-delete:hover{ opacity:1; }
+  @keyframes justAdded{
+    0%{ box-shadow:0 0 0 6px rgba(227,196,106,.6); }
+    100%{ box-shadow:0 0 0 0 rgba(227,196,106,0); }
+  }
+  .memory.just-added{ animation: justAdded 1.6s ease-out; }
   .memory-title{
     font-weight:700;
     color:var(--sapphire);
@@ -375,6 +416,134 @@
     font-size:12px;
     padding:24px 0 50px;
   }
+
+  /* ---------- ADD MEMORY: FAB ---------- */
+  .fab{
+    position:fixed;
+    bottom:20px; left:50%;
+    transform:translateX(-50%);
+    background:var(--gold);
+    color:#5a4408;
+    border:none;
+    border-radius:999px;
+    padding:13px 24px;
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    cursor:pointer;
+    z-index:40;
+    display:flex; align-items:center; gap:6px;
+  }
+  .fab:active{ transform:translateX(-50%) scale(.96); }
+
+  /* ---------- ADD MEMORY: MODAL ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(12,26,62,.6);
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
+    z-index:60;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:100%; max-width:460px;
+    max-height:88vh;
+    overflow-y:auto;
+    background:var(--cream);
+    border-radius:18px;
+    padding:24px 22px;
+    box-shadow:0 25px 60px rgba(0,0,0,.4);
+  }
+  .modal h3{
+    font-family:'Playfair Display',serif;
+    color:var(--sapphire);
+    text-align:center;
+    font-size:22px;
+    margin-bottom:16px;
+  }
+  .form-group{ margin-bottom:14px; }
+  .form-group label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--sapphire);
+    margin-bottom:5px;
+  }
+  .form-hint{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:4px;
+    font-style:italic;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="date"],
+  .form-group textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #d8e1fb;
+    border-radius:10px;
+    font-family:'Quicksand',sans-serif;
+    font-size:14px;
+    background:#fff;
+    color:var(--text);
+  }
+  .form-group textarea{ resize:vertical; min-height:80px; }
+  .form-group input:focus,
+  .form-group textarea:focus{
+    outline:2px solid var(--gold);
+    border-color:var(--gold);
+  }
+  .icon-picker{ display:flex; flex-wrap:wrap; gap:6px; }
+  .icon-option{
+    font-size:18px;
+    border:1px solid #d8e1fb;
+    background:#fff;
+    border-radius:10px;
+    width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .icon-option.selected{
+    border-color:var(--gold);
+    background:var(--gold-soft);
+    transform:scale(1.08);
+  }
+  .tag-picker{ display:flex; flex-wrap:wrap; gap:8px; }
+  .tag-pill{
+    font-size:12.5px;
+    border:1px solid #d8e1fb;
+    background:#eef2ff;
+    color:var(--sapphire);
+    border-radius:999px;
+    padding:6px 12px;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .tag-pill.selected{
+    background:var(--sapphire);
+    color:#fff;
+    border-color:var(--sapphire);
+  }
+  .modal-actions{ display:flex; gap:10px; margin-top:6px; }
+  .btn-primary, .btn-secondary{
+    flex:1;
+    padding:11px;
+    border-radius:999px;
+    border:none;
+    font-family:'Quicksand',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:transform .2s ease;
+  }
+  .btn-primary{ background:var(--sapphire); color:#fff; }
+  .btn-secondary{ background:#e9ecf7; color:var(--sapphire); }
+  .btn-primary:active, .btn-secondary:active{ transform:scale(.97); }
 </style>
 </head>
 <body>
@@ -415,10 +584,60 @@
         Las partes marcadas en <span class="editable">dorado</span> son espacios que vamos a llenar juntos:
         recuerdos, viajes, casas, amigos, fotos… poco a poco la iremos haciendo más nuestra. 💙
       </p>
+      <p style="margin-top:12px;">
+        Usa el botón <strong>"➕ Recuerdo"</strong> para ir agregando momentos: eligen fecha, tipo y
+        etiquetas, y la app lo coloca en la época correcta y lo conecta con las casas/amigos de ese
+        entonces. Por ahora cada quien ve lo que agrega en su propio celular o navegador — cuando
+        conectemos la base de datos compartida, todo se va a sincronizar entre los dos. ✨
+      </p>
     </div>
   </main>
 
   <footer id="footerText"></footer>
+
+  <button class="fab" id="addMemoryBtn">➕ Recuerdo</button>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>✨ Nuevo recuerdo</h3>
+      <form id="memoryForm">
+        <div class="form-group">
+          <label for="memDate">Fecha aproximada</label>
+          <input type="date" id="memDate" required>
+          <div class="form-hint">Si no recuerdan el día exacto, no importa — con el mes y el año basta.</div>
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <div class="icon-picker" id="iconPicker"></div>
+        </div>
+        <div class="form-group">
+          <label for="memTitle">Título</label>
+          <input type="text" id="memTitle" placeholder="Ej. Viaje a Nuevo Vallarta" required>
+        </div>
+        <div class="form-group">
+          <label for="memText">Cuéntalo</label>
+          <textarea id="memText" placeholder="¿Qué pasó? ¿Con quién? ¿Por qué lo recuerdan?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Conectar con (toca las que apliquen)</label>
+          <div class="tag-picker" id="tagPicker"></div>
+        </div>
+        <div class="form-group">
+          <label for="newTagLabel">Crear nueva etiqueta (opcional)</label>
+          <input type="text" id="newTagLabel" placeholder="Ej. Casa de la playa">
+          <div class="icon-picker" id="newTagIconPicker" style="margin-top:6px;"></div>
+        </div>
+        <div class="form-group">
+          <label for="memAuthor">¿Quién agrega este recuerdo?</label>
+          <input type="text" id="memAuthor" placeholder="Tu nombre" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="cancelMemory">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar 💙</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
 <script>
 /* =========================================================================
@@ -453,9 +672,13 @@ para seguirla llenando juntos, poquito a poco.`,
   },
 
   // Etapas de vida, en orden cronológico.
+  // "range" = [añoInicio, añoFin]: se usa para ubicar automáticamente los
+  // recuerdos que vayan agregando según su fecha. Deben cubrir 1981-2026
+  // sin huecos entre ellas.
   eras: [
     {
       years: "1981 – 1988",
+      range: [1981, 1988],
       title: "El comienzo",
       text: "💭 [Aquí cuenten cómo empezó todo: su boda, los primeros meses de casados, cómo era su primer hogar, quiénes los acompañaban en esa época.]",
       tags: ["casa-1", "amigos-1"],
@@ -463,6 +686,7 @@ para seguirla llenando juntos, poquito a poco.`,
     },
     {
       years: "1989 – 1997",
+      range: [1989, 1997],
       title: "Construyendo su mundo",
       text: "💭 [¿Dónde vivían en estos años? ¿Cambios de casa, de trabajo, de ciudad? ¿Qué los hacía felices en esta etapa?]",
       tags: ["casa-2"],
@@ -470,6 +694,7 @@ para seguirla llenando juntos, poquito a poco.`,
     },
     {
       years: "1998 – 2007",
+      range: [1998, 2007],
       title: "Los años con los amigos de siempre",
       text: "💭 [Esta es la época de su grupo de amigos de Nuevo Vallarta — cuenten cómo se conocieron, qué hacían juntos, por qué eran tan importantes en sus vidas.]",
       tags: ["casa-2", "amigos-vlt"],
@@ -485,6 +710,7 @@ para seguirla llenando juntos, poquito a poco.`,
     },
     {
       years: "2008 – 2017",
+      range: [2008, 2017],
       title: "Nuevos caminos",
       text: "💭 [¿Qué pasó en esta década? Nuevos retos, lugares, personas importantes que se sumaron a su historia.]",
       tags: ["casa-actual"],
@@ -492,6 +718,7 @@ para seguirla llenando juntos, poquito a poco.`,
     },
     {
       years: "2018 – 2026",
+      range: [2018, 2026],
       title: "El presente",
       text: "💭 [Los últimos años hasta hoy. ¿Cómo es su vida actual? ¿Qué los hace sentir agradecidos al mirar atrás?]",
       tags: ["casa-actual"],
@@ -506,10 +733,70 @@ para seguirla llenando juntos, poquito a poco.`,
 };
 /* ========================================================================= */
 
+// ---------- recuerdos agregados desde la app (localStorage) ----------
+const STORAGE_KEYS = {
+  memories: "aniv45_memories",
+  tags: "aniv45_tags",
+  author: "aniv45_author"
+};
+
+const ICONS = ["💭","✈️","🏠","👥","🎉","📍","📷","🎂","🍽️","🎵","❤️","🚗","🏖️","🎓","🏷️"];
+
+function loadUserMemories(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.memories)) || []; }
+  catch(e) { return []; }
+}
+function saveUserMemories(list){
+  localStorage.setItem(STORAGE_KEYS.memories, JSON.stringify(list));
+}
+function loadUserTags(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.tags)) || {}; }
+  catch(e) { return {}; }
+}
+function saveUserTags(obj){
+  localStorage.setItem(STORAGE_KEYS.tags, JSON.stringify(obj));
+}
+function getAllTags(){
+  return Object.assign({}, DATA.tags, loadUserTags());
+}
+function getAuthor(){
+  return localStorage.getItem(STORAGE_KEYS.author) || "";
+}
+function setAuthor(name){
+  localStorage.setItem(STORAGE_KEYS.author, name);
+}
+
+// Ubica una fecha "YYYY-MM-DD" en la etapa correspondiente según su año.
+// Si cae fuera de todas las etapas, se asigna a la más cercana.
+function findEraIndex(dateStr){
+  const year = parseInt(String(dateStr).slice(0, 4), 10);
+  if (isNaN(year)) return DATA.eras.length - 1;
+  for (let i = 0; i < DATA.eras.length; i++){
+    const [start, end] = DATA.eras[i].range;
+    if (year >= start && year <= end) return i;
+  }
+  return year < DATA.eras[0].range[0] ? 0 : DATA.eras.length - 1;
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
+function todayISO(){
+  return new Date().toISOString().slice(0, 10);
+}
+
 // ---------- helpers de fecha ----------
 function formatLongDate(dateStr){
   const d = new Date(dateStr + "T12:00:00");
   return d.toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
+}
+
+function formatShortDate(dateStr){
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("es-MX", { day:"numeric", month:"short", year:"numeric" });
 }
 
 function timeTogether(dateStr){
@@ -553,42 +840,59 @@ function renderLetter(){
 }
 
 // ---------- render tags ----------
-function tagHtml(key){
-  const t = DATA.tags[key];
+function tagHtml(key, allTags){
+  const t = allTags[key];
   if (!t) return "";
   return `<span class="tag" data-tag="${key}">${t.icon} ${t.label}</span>`;
+}
+
+// ---------- render una tarjeta de recuerdo ----------
+function memoryCardHtml(mem, era, allTags){
+  const allMemTags = [...new Set([...(mem.tags || []), ...(era.tags || [])])];
+  const tagsHtml = allMemTags.map(k => tagHtml(k, allTags)).join("");
+  const dataTags = allMemTags.join(",");
+  const dateLabel = mem.date ? formatShortDate(mem.date) : (mem.year || "");
+  const isUser = !!mem.id;
+
+  return `
+    <div class="memory ${isUser ? "memory-user" : ""}" data-tags="${dataTags}" ${isUser ? `data-memory-id="${mem.id}"` : ""}>
+      ${isUser ? `<button class="memory-delete" data-memory-id="${mem.id}" title="Eliminar recuerdo">🗑️</button>` : ""}
+      <div class="memory-title">${mem.icon || "📌"} ${escapeHtml(mem.title)} ${dateLabel ? `<span class="memory-date">· ${escapeHtml(dateLabel)}</span>` : ""}</div>
+      <div class="memory-text">${escapeHtml(mem.text)}</div>
+      ${tagsHtml ? `
+        <div class="memory-context-label">Contexto de esta época</div>
+        <div class="tags">${tagsHtml}</div>
+      ` : ""}
+      ${isUser ? `<div class="memory-author">— añadido por ${escapeHtml(mem.author)}</div>` : ""}
+    </div>`;
 }
 
 // ---------- render timeline ----------
 function renderTimeline(){
   const container = document.getElementById("timeline");
   container.innerHTML = "";
+  const allTags = getAllTags();
+  const userMemories = loadUserMemories();
 
   DATA.eras.forEach((era, idx) => {
     const eraEl = document.createElement("div");
     eraEl.className = "era";
     eraEl.dataset.eraIndex = idx;
 
-    const memoriesHtml = (era.memories || []).map(mem => {
-      const ownTags = (mem.tags || []).map(tagHtml).join("");
-      const inheritedTags = (era.tags || []).map(tagHtml).join("");
-      return `
-        <div class="memory" data-tags="${[...(mem.tags||[]), ...(era.tags||[])].join(',')}">
-          <div class="memory-title">${mem.icon || "📌"} ${mem.title} ${mem.year ? `<span style="color:var(--muted);font-weight:400;font-size:12px;">· ${mem.year}</span>` : ""}</div>
-          <div class="memory-text">${mem.text}</div>
-          ${(ownTags || inheritedTags) ? `
-            <div class="memory-context-label">Contexto de esta época</div>
-            <div class="tags">${inheritedTags}${ownTags}</div>
-          ` : ""}
-        </div>`;
-    }).join("");
+    const eraUserMemories = userMemories
+      .filter(m => m.eraIndex === idx)
+      .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+    const memoriesHtml = [...(era.memories || []), ...eraUserMemories]
+      .map(mem => memoryCardHtml(mem, era, allTags))
+      .join("");
 
     eraEl.innerHTML = `
       <div class="era-card" data-tags="${(era.tags||[]).join(',')}">
         <span class="era-years">${era.years}</span>
         <div class="era-title">${era.title}</div>
         <div class="era-text">${era.text}</div>
-        <div class="tags">${(era.tags || []).map(tagHtml).join("")}</div>
+        <div class="tags">${(era.tags || []).map(k => tagHtml(k, allTags)).join("")}</div>
         ${memoriesHtml}
       </div>`;
 
@@ -627,6 +931,125 @@ function setupTagInteraction(){
       const card = el.closest(".era-card, .memory");
       if (card) card.classList.add("card-highlight");
     });
+  });
+}
+
+// ---------- agregar / eliminar recuerdos ----------
+function renderIconPicker(containerId, defaultIcon){
+  const el = document.getElementById(containerId);
+  el.innerHTML = ICONS.map(ic =>
+    `<button type="button" class="icon-option ${ic === defaultIcon ? "selected" : ""}" data-icon="${ic}">${ic}</button>`
+  ).join("");
+}
+
+function renderTagPicker(){
+  const el = document.getElementById("tagPicker");
+  const allTags = getAllTags();
+  const keys = Object.keys(allTags);
+  if (keys.length === 0){
+    el.innerHTML = `<span class="form-hint">Aún no hay etiquetas — crea una abajo ↓</span>`;
+    return;
+  }
+  el.innerHTML = keys.map(k => {
+    const t = allTags[k];
+    return `<button type="button" class="tag-pill" data-tag-key="${k}">${t.icon} ${t.label}</button>`;
+  }).join("");
+}
+
+function openAddMemoryModal(){
+  document.getElementById("memDate").value = todayISO();
+  document.getElementById("memTitle").value = "";
+  document.getElementById("memText").value = "";
+  document.getElementById("newTagLabel").value = "";
+  document.getElementById("memAuthor").value = getAuthor();
+  renderIconPicker("iconPicker", "💭");
+  renderIconPicker("newTagIconPicker", "🏷️");
+  renderTagPicker();
+  document.getElementById("modalOverlay").classList.add("open");
+}
+
+function closeAddMemoryModal(){
+  document.getElementById("modalOverlay").classList.remove("open");
+}
+
+function setupAddMemory(){
+  document.getElementById("addMemoryBtn").addEventListener("click", openAddMemoryModal);
+  document.getElementById("cancelMemory").addEventListener("click", closeAddMemoryModal);
+  document.getElementById("modalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "modalOverlay") closeAddMemoryModal();
+  });
+
+  // selección de tipo/icono (uno seleccionado por picker)
+  document.addEventListener("click", (e) => {
+    const opt = e.target.closest(".icon-option");
+    if (!opt) return;
+    opt.parentElement.querySelectorAll(".icon-option").forEach(o => o.classList.remove("selected"));
+    opt.classList.add("selected");
+  });
+
+  // selección de etiquetas existentes (multi-selección)
+  document.addEventListener("click", (e) => {
+    const pill = e.target.closest(".tag-pill");
+    if (!pill) return;
+    pill.classList.toggle("selected");
+  });
+
+  // guardar nuevo recuerdo
+  document.getElementById("memoryForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const date = document.getElementById("memDate").value;
+    const title = document.getElementById("memTitle").value.trim();
+    const text = document.getElementById("memText").value.trim();
+    const author = document.getElementById("memAuthor").value.trim();
+    const icon = document.querySelector("#iconPicker .icon-option.selected")?.dataset.icon || "💭";
+    if (!date || !title || !author) return;
+
+    const tags = Array.from(document.querySelectorAll("#tagPicker .tag-pill.selected"))
+      .map(el => el.dataset.tagKey);
+
+    const newTagLabel = document.getElementById("newTagLabel").value.trim();
+    if (newTagLabel){
+      const newTagIcon = document.querySelector("#newTagIconPicker .icon-option.selected")?.dataset.icon || "🏷️";
+      const key = `custom-${Date.now()}`;
+      const userTags = loadUserTags();
+      userTags[key] = { icon: newTagIcon, label: newTagLabel };
+      saveUserTags(userTags);
+      tags.push(key);
+    }
+
+    const memory = {
+      id: Date.now(),
+      date, title, text, icon, tags, author,
+      eraIndex: findEraIndex(date)
+    };
+
+    const userMemories = loadUserMemories();
+    userMemories.push(memory);
+    saveUserMemories(userMemories);
+    setAuthor(author);
+
+    closeAddMemoryModal();
+    renderTimeline();
+
+    requestAnimationFrame(() => {
+      const card = document.querySelector(`.memory[data-memory-id="${memory.id}"]`);
+      if (card){
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("just-added");
+        setTimeout(() => card.classList.remove("just-added"), 1700);
+      }
+    });
+  });
+
+  // eliminar recuerdo
+  document.getElementById("timeline").addEventListener("click", (e) => {
+    const btn = e.target.closest(".memory-delete");
+    if (!btn) return;
+    if (!confirm("¿Eliminar este recuerdo?")) return;
+    const id = Number(btn.dataset.memoryId);
+    saveUserMemories(loadUserMemories().filter(m => m.id !== id));
+    renderTimeline();
   });
 }
 
@@ -699,6 +1122,7 @@ renderTimeline();
 renderToday();
 renderFooter();
 setupTagInteraction();
+setupAddMemory();
 
 document.getElementById("heroNumber").addEventListener("click", launchConfetti);
 document.getElementById("celebrateBtn").addEventListener("click", launchConfetti);
