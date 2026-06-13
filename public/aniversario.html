@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#0d1b3e" />
+<meta name="description" content="45 años juntos — nuestra historia" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>45 Años Juntos 💙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0c1a3e;
+    --sapphire:#1f3f8f;
+    --sapphire-light:#5b86e5;
+    --gold:#e3c46a;
+    --gold-soft:#f4e4b8;
+    --cream:#fffaf0;
+    --text:#27314f;
+    --muted:#8b95b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{scroll-behavior:smooth;}
+  body{
+    font-family:'Quicksand',sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.10) 0, transparent 35%),
+      radial-gradient(circle at 80% 25%, rgba(255,255,255,0.08) 0, transparent 30%),
+      radial-gradient(circle at 50% 80%, rgba(227,196,106,0.10) 0, transparent 40%),
+      linear-gradient(160deg, #0c1a3e 0%, #16306f 45%, #1f3f8f 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  ::-webkit-scrollbar{display:none;}
+
+  #confetti{
+    position:fixed; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:50;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    text-align:center;
+    padding:64px 20px 48px;
+    color:var(--cream);
+  }
+  .hero-hearts{
+    font-size:22px;
+    letter-spacing:14px;
+    opacity:.85;
+    margin-bottom:8px;
+  }
+  .hero-number{
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    font-size:clamp(64px,22vw,140px);
+    line-height:1;
+    background:linear-gradient(135deg,var(--gold-soft),var(--gold) 55%, #fff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    cursor:pointer;
+    user-select:none;
+    text-shadow:0 0 40px rgba(227,196,106,.35);
+    transition:transform .2s ease;
+  }
+  .hero-number:active{ transform:scale(.95); }
+  .hero-sub{
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-size:clamp(20px,5vw,30px);
+    margin-top:4px;
+    letter-spacing:1px;
+  }
+  .hero-dates{
+    margin-top:18px;
+    font-size:15px;
+    color:var(--gold-soft);
+    letter-spacing:.5px;
+  }
+  .hero-counter{
+    margin-top:10px;
+    font-size:14px;
+    color:rgba(255,250,240,.75);
+    max-width:380px;
+    margin-inline:auto;
+    line-height:1.5;
+  }
+  .hero-hint{
+    margin-top:6px;
+    font-size:12px;
+    color:rgba(255,250,240,.45);
+    font-style:italic;
+  }
+  .scroll-cue{
+    margin-top:38px;
+    font-size:24px;
+    color:var(--gold);
+    animation:bounce 2s infinite;
+  }
+  @keyframes bounce{
+    0%,100%{transform:translateY(0); opacity:.6;}
+    50%{transform:translateY(8px); opacity:1;}
+  }
+
+  /* ---------- SECTIONS ---------- */
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 18px 80px;
+  }
+  .section-title{
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    font-size:clamp(24px,5vw,32px);
+    color:var(--cream);
+    text-align:center;
+    margin-bottom:6px;
+  }
+  .section-sub{
+    text-align:center;
+    color:rgba(255,250,240,.6);
+    font-size:14px;
+    margin-bottom:32px;
+  }
+
+  /* ---------- LETTER ---------- */
+  .letter{
+    background:var(--cream);
+    border-radius:22px;
+    padding:32px 26px;
+    margin:40px 0 60px;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    border:1px solid rgba(227,196,106,.5);
+    position:relative;
+  }
+  .letter::before{
+    content:"💌";
+    position:absolute;
+    top:-22px; left:50%;
+    transform:translateX(-50%);
+    background:var(--gold);
+    width:44px; height:44px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);
+  }
+  .letter h2{
+    font-family:'Playfair Display',serif;
+    text-align:center;
+    margin-bottom:18px;
+    margin-top:8px;
+    color:var(--sapphire);
+  }
+  .letter-body{
+    font-size:15.5px;
+    line-height:1.85;
+    white-space:pre-line;
+    color:var(--text);
+  }
+  .letter-sign{
+    margin-top:18px;
+    text-align:right;
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    color:var(--sapphire);
+  }
+  .editable{
+    color:#a08230;
+    background:rgba(227,196,106,.18);
+    border-radius:6px;
+    padding:0 4px;
+  }
+
+  /* ---------- TIMELINE ---------- */
+  .timeline{
+    position:relative;
+    padding-left:28px;
+    margin-top:10px;
+  }
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:9px; top:8px; bottom:8px;
+    width:2px;
+    background:linear-gradient(to bottom, var(--gold), rgba(227,196,106,.15));
+  }
+  .era{
+    position:relative;
+    margin-bottom:34px;
+  }
+  .era::before{
+    content:"";
+    position:absolute;
+    left:-28px; top:6px;
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--gold);
+    border:3px solid var(--navy);
+    box-shadow:0 0 0 4px rgba(227,196,106,.18);
+  }
+  .era-card{
+    background:var(--cream);
+    border-radius:18px;
+    padding:20px 22px;
+    box-shadow:0 12px 30px rgba(0,0,0,.18);
+    transition:box-shadow .3s ease, transform .3s ease;
+  }
+  .era-card.card-highlight{
+    box-shadow:0 0 0 3px var(--gold), 0 12px 30px rgba(227,196,106,.35);
+    transform:translateY(-2px);
+  }
+  .era-years{
+    display:inline-block;
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    color:var(--sapphire);
+    background:var(--gold-soft);
+    border-radius:8px;
+    padding:3px 10px;
+    font-size:13px;
+    margin-bottom:8px;
+  }
+  .era-title{
+    font-family:'Playfair Display',serif;
+    font-size:21px;
+    color:var(--sapphire);
+    margin-bottom:8px;
+  }
+  .era-text{
+    font-size:14.5px;
+    line-height:1.7;
+    color:var(--text);
+    margin-bottom:12px;
+  }
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:6px;
+  }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:12.5px;
+    background:#eef2ff;
+    color:var(--sapphire);
+    border:1px solid #d8e1fb;
+    border-radius:999px;
+    padding:5px 12px;
+    cursor:pointer;
+    transition:all .25s ease;
+    user-select:none;
+  }
+  .tag:hover{ transform:translateY(-1px); }
+  .tag.tag-active{
+    background:var(--gold);
+    color:#5a4408;
+    border-color:var(--gold);
+    box-shadow:0 4px 14px rgba(227,196,106,.5);
+    font-weight:600;
+  }
+
+  /* memories nested inside an era */
+  .memory{
+    margin-top:14px;
+    background:#f4f7ff;
+    border:1px dashed #c9d6f7;
+    border-radius:14px;
+    padding:14px 16px;
+    transition:box-shadow .3s ease, border-color .3s ease;
+  }
+  .memory.card-highlight{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(227,196,106,.35);
+    background:#fdf8ec;
+  }
+  .memory-title{
+    font-weight:700;
+    color:var(--sapphire);
+    font-size:14.5px;
+    margin-bottom:4px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .memory-text{
+    font-size:13.5px;
+    line-height:1.65;
+    color:var(--text);
+    margin-bottom:8px;
+  }
+  .memory-context-label{
+    font-size:11px;
+    color:var(--muted);
+    margin:8px 0 4px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+
+  /* ---------- TODAY CARD ---------- */
+  .today-card{
+    margin:50px 0;
+    text-align:center;
+    background:linear-gradient(135deg, var(--gold-soft), var(--gold));
+    border-radius:22px;
+    padding:34px 24px;
+    box-shadow:0 20px 50px rgba(227,196,106,.35);
+    position:relative;
+    animation:glow 3s ease-in-out infinite;
+  }
+  @keyframes glow{
+    0%,100%{ box-shadow:0 20px 50px rgba(227,196,106,.35); }
+    50%{ box-shadow:0 20px 70px rgba(227,196,106,.65); }
+  }
+  .today-card h2{
+    font-family:'Playfair Display',serif;
+    font-size:clamp(22px,6vw,30px);
+    color:#5a4408;
+    margin-bottom:10px;
+  }
+  .today-card p{
+    font-size:14.5px;
+    color:#5a4408;
+    line-height:1.7;
+    max-width:480px;
+    margin:0 auto 14px;
+  }
+  .celebrate-btn{
+    border:none;
+    background:var(--sapphire);
+    color:var(--cream);
+    font-family:'Quicksand',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:11px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(31,63,143,.35);
+    transition:transform .2s ease;
+  }
+  .celebrate-btn:active{ transform:scale(.96); }
+
+  /* ---------- CTA / NEXT STEPS ---------- */
+  .cta{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;
+    padding:24px 22px;
+    text-align:center;
+    color:rgba(255,250,240,.85);
+    margin-bottom:30px;
+  }
+  .cta h2{
+    font-family:'Playfair Display',serif;
+    color:var(--cream);
+    font-size:20px;
+    margin-bottom:10px;
+  }
+  .cta p{
+    font-size:13.5px;
+    line-height:1.7;
+    max-width:480px;
+    margin:0 auto;
+  }
+
+  footer{
+    text-align:center;
+    color:rgba(255,250,240,.4);
+    font-size:12px;
+    padding:24px 0 50px;
+  }
+</style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <header class="hero">
+    <div class="hero-hearts">💙 ✨ 💙</div>
+    <div class="hero-number" id="heroNumber">45</div>
+    <div class="hero-sub">años juntos</div>
+    <div class="hero-dates" id="heroDates"></div>
+    <div class="hero-counter" id="heroCounter"></div>
+    <div class="hero-hint">(toca el 45 para celebrar otra vez 🎉)</div>
+    <div class="scroll-cue">↓</div>
+  </header>
+
+  <main>
+    <section class="letter" id="letterCard">
+      <h2>Para ti</h2>
+      <div class="letter-body" id="letterBody"></div>
+      <div class="letter-sign" id="letterSign"></div>
+    </section>
+
+    <h2 class="section-title">✨ Nuestra historia</h2>
+    <p class="section-sub">Toca una etiqueta 🏷️ y mira cómo se conecta con otros momentos de nuestra vida</p>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div class="today-card" id="todayCard">
+      <h2 id="todayTitle"></h2>
+      <p id="todayText"></p>
+      <button class="celebrate-btn" id="celebrateBtn">🎉 Celebrar otra vez</button>
+    </div>
+
+    <div class="cta">
+      <h2>📝 Y esto es solo el comienzo…</h2>
+      <p>
+        Esta es la primera versión de nuestra línea de tiempo — un regalo para hoy.
+        Las partes marcadas en <span class="editable">dorado</span> son espacios que vamos a llenar juntos:
+        recuerdos, viajes, casas, amigos, fotos… poco a poco la iremos haciendo más nuestra. 💙
+      </p>
+    </div>
+  </main>
+
+  <footer id="footerText"></footer>
+
+<script>
+/* =========================================================================
+   EDITA AQUÍ: toda la información personal vive en este objeto DATA.
+   - "tags" son etiquetas reutilizables (casas, grupos de amigos, etc.)
+     Cualquier "memory" o "era" que use la misma clave de tag quedará
+     conectada visualmente (al hacer click se resalta en toda la página).
+   - Cada "era" representa una etapa de vida. Puede tener "memories"
+     (viajes, eventos, anécdotas) que ocurrieron durante esa etapa.
+   ========================================================================= */
+const DATA = {
+  weddingDate: "1981-06-13", // <-- ajusta si la fecha real es otra
+  names: { from: "Tu nombre", to: "Mi amor" }, // <-- EDITA con sus nombres
+
+  letter: `Hoy se cumplen 45 años desde aquel día.
+
+[Aquí va tu mensaje, mi amor — lo que quieras decirle hoy. Puede ser
+largo o cortito, una promesa, un recuerdo, un "gracias por todo este
+camino juntos". Bórralo y escribe lo que sientas. ❤️]
+
+Y como regalo, empecé esta línea de tiempo con nuestra historia —
+para seguirla llenando juntos, poquito a poco.`,
+
+  // Diccionario de "contexto" reutilizable: casas, grupos de amigos, etc.
+  // Edita las etiquetas (label) y agrega las que necesites.
+  tags: {
+    "casa-1":      { icon: "🏠", label: "Su primer hogar (ejemplo)" },
+    "amigos-1":    { icon: "👥", label: "Amigos de los primeros años (ejemplo)" },
+    "casa-2":      { icon: "🏡", label: "La casa de... (ejemplo)" },
+    "amigos-vlt":  { icon: "👥", label: "El grupo de Nuevo Vallarta (ejemplo)" },
+    "casa-actual": { icon: "🏠", label: "Donde viven hoy (ejemplo)" }
+  },
+
+  // Etapas de vida, en orden cronológico.
+  eras: [
+    {
+      years: "1981 – 1988",
+      title: "El comienzo",
+      text: "💭 [Aquí cuenten cómo empezó todo: su boda, los primeros meses de casados, cómo era su primer hogar, quiénes los acompañaban en esa época.]",
+      tags: ["casa-1", "amigos-1"],
+      memories: []
+    },
+    {
+      years: "1989 – 1997",
+      title: "Construyendo su mundo",
+      text: "💭 [¿Dónde vivían en estos años? ¿Cambios de casa, de trabajo, de ciudad? ¿Qué los hacía felices en esta etapa?]",
+      tags: ["casa-2"],
+      memories: []
+    },
+    {
+      years: "1998 – 2007",
+      title: "Los años con los amigos de siempre",
+      text: "💭 [Esta es la época de su grupo de amigos de Nuevo Vallarta — cuenten cómo se conocieron, qué hacían juntos, por qué eran tan importantes en sus vidas.]",
+      tags: ["casa-2", "amigos-vlt"],
+      memories: [
+        {
+          icon: "✈️",
+          title: "Viaje a Nuevo Vallarta (ejemplo)",
+          year: "ej. 2001",
+          text: "💭 [Aquí va el recuerdo del viaje: con quién fueron, qué hicieron, alguna anécdota divertida o especial. Fíjense cómo esta tarjeta ya muestra abajo el contexto de esa época: la casa donde vivían y el grupo de amigos — así se conecta todo.]",
+          tags: []
+        }
+      ]
+    },
+    {
+      years: "2008 – 2017",
+      title: "Nuevos caminos",
+      text: "💭 [¿Qué pasó en esta década? Nuevos retos, lugares, personas importantes que se sumaron a su historia.]",
+      tags: ["casa-actual"],
+      memories: []
+    },
+    {
+      years: "2018 – 2026",
+      title: "El presente",
+      text: "💭 [Los últimos años hasta hoy. ¿Cómo es su vida actual? ¿Qué los hace sentir agradecidos al mirar atrás?]",
+      tags: ["casa-actual"],
+      memories: []
+    }
+  ],
+
+  todayTitle: "13 de junio de 2026 · 45° Aniversario 🎉",
+  todayText: "Hoy celebramos 45 años juntos. Gracias por cada etapa, cada casa, cada viaje, cada amigo compartido y cada día construido junto a ti. Y por todo lo que sigue… 💙",
+
+  footer: "Hecho con 💙 — junio 2026"
+};
+/* ========================================================================= */
+
+// ---------- helpers de fecha ----------
+function formatLongDate(dateStr){
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
+}
+
+function timeTogether(dateStr){
+  const start = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  let days = now.getDate() - start.getDate();
+  if (days < 0){
+    months--;
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0){ years--; months += 12; }
+  return { years, months, days };
+}
+
+// ---------- render hero ----------
+function renderHero(){
+  const start = formatLongDate(DATA.weddingDate);
+  const end = new Date().toLocaleDateString("es-MX", { day:"numeric", month:"long", year:"numeric" });
+  document.getElementById("heroDates").textContent = `${start} — ${end}`;
+
+  const t = timeTogether(DATA.weddingDate);
+  const counterEl = document.getElementById("heroCounter");
+  if (t.years >= 45 && t.months === 0 && t.days === 0){
+    counterEl.textContent = "¡Hoy cumplimos exactamente 45 años juntos! ✨";
+  } else {
+    const parts = [];
+    parts.push(`${t.years} años`);
+    if (t.months) parts.push(`${t.months} mes${t.months===1?"":"es"}`);
+    if (t.days) parts.push(`${t.days} día${t.days===1?"":"s"}`);
+    counterEl.textContent = `Llevamos ${parts.join(", ")} juntos ✨`;
+  }
+}
+
+// ---------- render carta ----------
+function renderLetter(){
+  document.getElementById("letterBody").textContent = DATA.letter;
+  document.getElementById("letterSign").textContent = `— ${DATA.names.from}`;
+}
+
+// ---------- render tags ----------
+function tagHtml(key){
+  const t = DATA.tags[key];
+  if (!t) return "";
+  return `<span class="tag" data-tag="${key}">${t.icon} ${t.label}</span>`;
+}
+
+// ---------- render timeline ----------
+function renderTimeline(){
+  const container = document.getElementById("timeline");
+  container.innerHTML = "";
+
+  DATA.eras.forEach((era, idx) => {
+    const eraEl = document.createElement("div");
+    eraEl.className = "era";
+    eraEl.dataset.eraIndex = idx;
+
+    const memoriesHtml = (era.memories || []).map(mem => {
+      const ownTags = (mem.tags || []).map(tagHtml).join("");
+      const inheritedTags = (era.tags || []).map(tagHtml).join("");
+      return `
+        <div class="memory" data-tags="${[...(mem.tags||[]), ...(era.tags||[])].join(',')}">
+          <div class="memory-title">${mem.icon || "📌"} ${mem.title} ${mem.year ? `<span style="color:var(--muted);font-weight:400;font-size:12px;">· ${mem.year}</span>` : ""}</div>
+          <div class="memory-text">${mem.text}</div>
+          ${(ownTags || inheritedTags) ? `
+            <div class="memory-context-label">Contexto de esta época</div>
+            <div class="tags">${inheritedTags}${ownTags}</div>
+          ` : ""}
+        </div>`;
+    }).join("");
+
+    eraEl.innerHTML = `
+      <div class="era-card" data-tags="${(era.tags||[]).join(',')}">
+        <span class="era-years">${era.years}</span>
+        <div class="era-title">${era.title}</div>
+        <div class="era-text">${era.text}</div>
+        <div class="tags">${(era.tags || []).map(tagHtml).join("")}</div>
+        ${memoriesHtml}
+      </div>`;
+
+    container.appendChild(eraEl);
+  });
+}
+
+// ---------- render today card ----------
+function renderToday(){
+  document.getElementById("todayTitle").textContent = DATA.todayTitle;
+  document.getElementById("todayText").textContent = DATA.todayText;
+}
+
+// ---------- footer ----------
+function renderFooter(){
+  document.getElementById("footerText").textContent = DATA.footer;
+}
+
+// ---------- tag interconnection ----------
+function setupTagInteraction(){
+  document.addEventListener("click", (e) => {
+    const tagEl = e.target.closest(".tag");
+    if (!tagEl) return;
+
+    const key = tagEl.dataset.tag;
+    const wasActive = tagEl.classList.contains("tag-active");
+
+    // limpia estado previo
+    document.querySelectorAll(".tag-active").forEach(el => el.classList.remove("tag-active"));
+    document.querySelectorAll(".card-highlight").forEach(el => el.classList.remove("card-highlight"));
+
+    if (wasActive) return; // toggle off
+
+    document.querySelectorAll(`.tag[data-tag="${key}"]`).forEach(el => {
+      el.classList.add("tag-active");
+      const card = el.closest(".era-card, .memory");
+      if (card) card.classList.add("card-highlight");
+    });
+  });
+}
+
+// ---------- confetti ----------
+let confettiRunning = false;
+function launchConfetti(){
+  if (confettiRunning) return;
+  confettiRunning = true;
+
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.opacity = "1";
+
+  const colors = ["#e3c46a", "#5b86e5", "#fffaf0", "#f4e4b8", "#ffffff"];
+  const particles = Array.from({ length: 140 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.4,
+    r: 4 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speed: 2 + Math.random() * 3,
+    drift: Math.random() * Math.PI * 2,
+    rot: Math.random() * Math.PI * 2,
+    spin: -0.12 + Math.random() * 0.24,
+    rect: Math.random() > 0.5
+  }));
+
+  let frame = 0;
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.speed;
+      p.x += Math.sin(p.drift + frame / 30);
+      p.rot += p.spin;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.rect) ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*1.6);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.r/2, 0, Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 230){
+      requestAnimationFrame(draw);
+    } else {
+      canvas.style.transition = "opacity 1s ease";
+      canvas.style.opacity = "0";
+      setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.transition = "";
+        confettiRunning = false;
+      }, 1000);
+    }
+  }
+  draw();
+}
+
+window.addEventListener("resize", () => {
+  const canvas = document.getElementById("confetti");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// ---------- init ----------
+renderHero();
+renderLetter();
+renderTimeline();
+renderToday();
+renderFooter();
+setupTagInteraction();
+
+document.getElementById("heroNumber").addEventListener("click", launchConfetti);
+document.getElementById("celebrateBtn").addEventListener("click", launchConfetti);
+
+window.addEventListener("load", () => setTimeout(launchConfetti, 400));
+</script>
+</body>
+</html>
