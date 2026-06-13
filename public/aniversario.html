@@ -191,6 +191,21 @@
     width:2px;
     background:linear-gradient(to bottom, var(--gold), rgba(227,196,106,.15));
   }
+  .data-banner{
+    text-align:center;
+    font-size:13px;
+    color:rgba(255,250,240,.8);
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:18px;
+  }
+  .data-banner.data-error{
+    color:#ffe4d6;
+    background:rgba(214,90,90,.16);
+    border-color:rgba(214,90,90,.4);
+  }
   .era{
     position:relative;
     margin-bottom:34px;
@@ -544,6 +559,7 @@
   .btn-primary{ background:var(--sapphire); color:#fff; }
   .btn-secondary{ background:#e9ecf7; color:var(--sapphire); }
   .btn-primary:active, .btn-secondary:active{ transform:scale(.97); }
+  .btn-primary:disabled{ opacity:.6; cursor:default; }
 </style>
 </head>
 <body>
@@ -587,8 +603,8 @@
       <p style="margin-top:12px;">
         Usa el botón <strong>"➕ Recuerdo"</strong> para ir agregando momentos: eligen fecha, tipo y
         etiquetas, y la app lo coloca en la época correcta y lo conecta con las casas/amigos de ese
-        entonces. Por ahora cada quien ve lo que agrega en su propio celular o navegador — cuando
-        conectemos la base de datos compartida, todo se va a sincronizar entre los dos. ✨
+        entonces. Todo se guarda en un lugar compartido — lo que agregue uno, lo ve el otro al
+        instante, en cualquier celular o navegador. ✨
       </p>
     </div>
   </main>
@@ -639,6 +655,7 @@
     </div>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* =========================================================================
    EDITA AQUÍ: toda la información personal vive en este objeto DATA.
@@ -733,31 +750,101 @@ para seguirla llenando juntos, poquito a poco.`,
 };
 /* ========================================================================= */
 
-// ---------- recuerdos agregados desde la app (localStorage) ----------
+// ---------- conexión compartida con Supabase ----------
+const SUPABASE_URL = "https://hjlhgudxsonekutuejol.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqbGhndWR4c29uZWt1dHVlam9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMjgyMzYsImV4cCI6MjA5NjkwNDIzNn0.m2SCkN42H2hVWyXy3gjzQ8QXMVGcYt8QDGN6Kx-PP-w";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const STORAGE_KEYS = {
-  memories: "aniv45_memories",
-  tags: "aniv45_tags",
   author: "aniv45_author"
 };
 
 const ICONS = ["💭","✈️","🏠","👥","🎉","📍","📷","🎂","🍽️","🎵","❤️","🚗","🏖️","🎓","🏷️"];
 
-function loadUserMemories(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.memories)) || []; }
-  catch(e) { return []; }
+// caché local de los datos compartidos (se llena con refreshSharedData)
+let cachedMemories = [];
+let cachedCustomTags = {};
+let dataLoadError = false;
+
+function rowToMemory(row){
+  return {
+    id: row.id,
+    date: row.date,
+    title: row.title,
+    text: row.description || "",
+    icon: row.icon || "💭",
+    tags: row.tags || [],
+    author: row.author || "",
+    eraIndex: row.era_index
+  };
 }
-function saveUserMemories(list){
-  localStorage.setItem(STORAGE_KEYS.memories, JSON.stringify(list));
+
+async function fetchMemories(){
+  const { data, error } = await supabaseClient
+    .from("memories")
+    .select("*")
+    .order("date", { ascending: true });
+  if (error) throw error;
+  return (data || []).map(rowToMemory);
 }
-function loadUserTags(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.tags)) || {}; }
-  catch(e) { return {}; }
+
+async function fetchCustomTags(){
+  const { data, error } = await supabaseClient
+    .from("custom_tags")
+    .select("*");
+  if (error) throw error;
+  const tags = {};
+  (data || []).forEach(row => {
+    tags[row.key] = { icon: row.icon, label: row.label };
+  });
+  return tags;
 }
-function saveUserTags(obj){
-  localStorage.setItem(STORAGE_KEYS.tags, JSON.stringify(obj));
+
+async function refreshSharedData(){
+  try {
+    const [memories, tags] = await Promise.all([fetchMemories(), fetchCustomTags()]);
+    cachedMemories = memories;
+    cachedCustomTags = tags;
+    dataLoadError = false;
+  } catch (e){
+    console.error("Error cargando datos compartidos:", e);
+    dataLoadError = true;
+  }
 }
+
+async function insertMemory(memory){
+  const { data, error } = await supabaseClient
+    .from("memories")
+    .insert({
+      date: memory.date,
+      title: memory.title,
+      description: memory.text,
+      icon: memory.icon,
+      tags: memory.tags,
+      author: memory.author,
+      era_index: memory.eraIndex
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToMemory(data);
+}
+
+async function deleteMemory(id){
+  const { error } = await supabaseClient.from("memories").delete().eq("id", id);
+  if (error) throw error;
+}
+
+async function insertCustomTag(key, tag){
+  const { error } = await supabaseClient.from("custom_tags").insert({
+    key, icon: tag.icon, label: tag.label
+  });
+  if (error) throw error;
+}
+
 function getAllTags(){
-  return Object.assign({}, DATA.tags, loadUserTags());
+  return Object.assign({}, DATA.tags, cachedCustomTags);
 }
 function getAuthor(){
   return localStorage.getItem(STORAGE_KEYS.author) || "";
@@ -872,14 +959,20 @@ function renderTimeline(){
   const container = document.getElementById("timeline");
   container.innerHTML = "";
   const allTags = getAllTags();
-  const userMemories = loadUserMemories();
+
+  if (dataLoadError){
+    const banner = document.createElement("div");
+    banner.className = "data-banner data-error";
+    banner.textContent = "⚠️ No se pudieron cargar los recuerdos compartidos. Revisa tu conexión y recarga la página.";
+    container.appendChild(banner);
+  }
 
   DATA.eras.forEach((era, idx) => {
     const eraEl = document.createElement("div");
     eraEl.className = "era";
     eraEl.dataset.eraIndex = idx;
 
-    const eraUserMemories = userMemories
+    const eraUserMemories = cachedMemories
       .filter(m => m.eraIndex === idx)
       .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
 
@@ -995,7 +1088,7 @@ function setupAddMemory(){
   });
 
   // guardar nuevo recuerdo
-  document.getElementById("memoryForm").addEventListener("submit", (e) => {
+  document.getElementById("memoryForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const date = document.getElementById("memDate").value;
@@ -1009,48 +1102,79 @@ function setupAddMemory(){
       .map(el => el.dataset.tagKey);
 
     const newTagLabel = document.getElementById("newTagLabel").value.trim();
+    let newTagKey = null;
+    let newTagData = null;
     if (newTagLabel){
       const newTagIcon = document.querySelector("#newTagIconPicker .icon-option.selected")?.dataset.icon || "🏷️";
-      const key = `custom-${Date.now()}`;
-      const userTags = loadUserTags();
-      userTags[key] = { icon: newTagIcon, label: newTagLabel };
-      saveUserTags(userTags);
-      tags.push(key);
+      newTagKey = `custom-${Date.now()}`;
+      newTagData = { icon: newTagIcon, label: newTagLabel };
+      tags.push(newTagKey);
     }
 
-    const memory = {
-      id: Date.now(),
-      date, title, text, icon, tags, author,
-      eraIndex: findEraIndex(date)
-    };
+    const memory = { date, title, text, icon, tags, author, eraIndex: findEraIndex(date) };
 
-    const userMemories = loadUserMemories();
-    userMemories.push(memory);
-    saveUserMemories(userMemories);
-    setAuthor(author);
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    const originalLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Guardando…";
 
-    closeAddMemoryModal();
-    renderTimeline();
+    try {
+      if (newTagKey) await insertCustomTag(newTagKey, newTagData);
+      const saved = await insertMemory(memory);
+      setAuthor(author);
+      await refreshSharedData();
+      closeAddMemoryModal();
+      renderTimeline();
 
-    requestAnimationFrame(() => {
-      const card = document.querySelector(`.memory[data-memory-id="${memory.id}"]`);
-      if (card){
-        card.scrollIntoView({ behavior: "smooth", block: "center" });
-        card.classList.add("just-added");
-        setTimeout(() => card.classList.remove("just-added"), 1700);
-      }
-    });
+      requestAnimationFrame(() => {
+        const card = document.querySelector(`.memory[data-memory-id="${saved.id}"]`);
+        if (card){
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+          card.classList.add("just-added");
+          setTimeout(() => card.classList.remove("just-added"), 1700);
+        }
+      });
+    } catch (err){
+      console.error("Error guardando recuerdo:", err);
+      alert("No se pudo guardar el recuerdo. Revisa tu conexión e inténtalo de nuevo.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
+    }
   });
 
   // eliminar recuerdo
-  document.getElementById("timeline").addEventListener("click", (e) => {
+  document.getElementById("timeline").addEventListener("click", async (e) => {
     const btn = e.target.closest(".memory-delete");
     if (!btn) return;
     if (!confirm("¿Eliminar este recuerdo?")) return;
     const id = Number(btn.dataset.memoryId);
-    saveUserMemories(loadUserMemories().filter(m => m.id !== id));
-    renderTimeline();
+    btn.disabled = true;
+    try {
+      await deleteMemory(id);
+      await refreshSharedData();
+      renderTimeline();
+    } catch (err){
+      console.error("Error eliminando recuerdo:", err);
+      alert("No se pudo eliminar el recuerdo. Revisa tu conexión e inténtalo de nuevo.");
+      btn.disabled = false;
+    }
   });
+}
+
+// ---------- sincronización en tiempo real entre los dos ----------
+function setupRealtime(){
+  supabaseClient
+    .channel("memories-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: "memories" }, async () => {
+      await refreshSharedData();
+      renderTimeline();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "custom_tags" }, async () => {
+      await refreshSharedData();
+      renderTimeline();
+    })
+    .subscribe();
 }
 
 // ---------- confetti ----------
@@ -1116,16 +1240,27 @@ window.addEventListener("resize", () => {
 });
 
 // ---------- init ----------
-renderHero();
-renderLetter();
-renderTimeline();
-renderToday();
-renderFooter();
-setupTagInteraction();
-setupAddMemory();
+async function init(){
+  renderHero();
+  renderLetter();
+  renderToday();
+  renderFooter();
 
-document.getElementById("heroNumber").addEventListener("click", launchConfetti);
-document.getElementById("celebrateBtn").addEventListener("click", launchConfetti);
+  document.getElementById("timeline").innerHTML =
+    `<div class="data-banner">Cargando recuerdos compartidos…</div>`;
+
+  await refreshSharedData();
+  renderTimeline();
+
+  setupTagInteraction();
+  setupAddMemory();
+  setupRealtime();
+
+  document.getElementById("heroNumber").addEventListener("click", launchConfetti);
+  document.getElementById("celebrateBtn").addEventListener("click", launchConfetti);
+}
+
+init();
 
 window.addEventListener("load", () => setTimeout(launchConfetti, 400));
 </script>
