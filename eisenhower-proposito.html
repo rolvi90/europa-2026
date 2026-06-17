@@ -3,27 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Matriz de Propósito — Eisenhower Expandida</title>
+<title>Matriz de Propósito — PROFIT+ LIDER</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #242836;
-    --border: #2e3347;
-    --text: #e4e6f0;
-    --text-dim: #8b8fa3;
-    --accent: #7c6ff7;
-    --accent-light: #9d93fa;
-    --green: #34d399;
-    --green-bg: rgba(52,211,153,0.12);
-    --blue: #60a5fa;
-    --blue-bg: rgba(96,165,250,0.12);
-    --amber: #fbbf24;
-    --amber-bg: rgba(251,191,36,0.12);
-    --red: #f87171;
-    --red-bg: rgba(248,113,113,0.12);
-    --purple: #a78bfa;
-    --purple-bg: rgba(167,139,250,0.12);
+    --bg: #0a1628;
+    --surface: #0f1f3d;
+    --surface2: #152a4a;
+    --border: #1e3a5f;
+    --text: #e8ecf4;
+    --text-dim: #8a9bbf;
+    --accent: #1a56db;
+    --accent-light: #3b82f6;
+    --gold: #d4a017;
+    --gold-light: #f0c040;
+    --green: #d4a017;
+    --green-bg: rgba(212,160,23,0.12);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.12);
+    --amber: #f0c040;
+    --amber-bg: rgba(240,192,64,0.12);
+    --red: #e85d5d;
+    --red-bg: rgba(232,93,93,0.12);
+    --purple: #3b82f6;
+    --purple-bg: rgba(59,130,246,0.12);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -204,7 +206,7 @@
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
-    box-shadow: 0 0 8px rgba(124,111,247,0.4);
+    box-shadow: 0 0 8px rgba(26,86,219,0.5);
   }
 
   input[type="range"]::-moz-range-thumb {
@@ -268,7 +270,7 @@
   .btn-danger {
     background: transparent;
     color: var(--red);
-    border: 1px solid rgba(248,113,113,0.3);
+    border: 1px solid rgba(232,93,93,0.3);
   }
 
   .btn-danger:hover {
@@ -320,26 +322,26 @@
   }
 
   .q-purpose {
-    background: var(--green-bg);
-    border: 1px solid rgba(52,211,153,0.2);
+    background: rgba(212,160,23,0.10);
+    border: 1px solid rgba(212,160,23,0.25);
   }
-  .q-purpose .quadrant-title { color: var(--green); }
+  .q-purpose .quadrant-title { color: var(--gold-light); }
 
   .q-growth {
-    background: var(--blue-bg);
-    border: 1px solid rgba(96,165,250,0.2);
+    background: rgba(59,130,246,0.10);
+    border: 1px solid rgba(59,130,246,0.25);
   }
   .q-growth .quadrant-title { color: var(--blue); }
 
   .q-duty {
-    background: var(--amber-bg);
-    border: 1px solid rgba(251,191,36,0.2);
+    background: rgba(240,192,64,0.08);
+    border: 1px solid rgba(240,192,64,0.20);
   }
   .q-duty .quadrant-title { color: var(--amber); }
 
   .q-noise {
     background: var(--red-bg);
-    border: 1px solid rgba(248,113,113,0.2);
+    border: 1px solid rgba(232,93,93,0.2);
   }
   .q-noise .quadrant-title { color: var(--red); }
 
@@ -382,18 +384,18 @@
   }
 
   .badge-urgency {
-    background: rgba(251,191,36,0.15);
+    background: rgba(240,192,64,0.15);
     color: var(--amber);
   }
 
   .badge-mission {
-    background: rgba(124,111,247,0.15);
+    background: rgba(59,130,246,0.15);
     color: var(--accent-light);
   }
 
   .badge-joy {
-    background: rgba(52,211,153,0.15);
-    color: var(--green);
+    background: rgba(212,160,23,0.15);
+    color: var(--gold-light);
   }
 
   .task-score {
@@ -512,7 +514,7 @@
     letter-spacing: 0.04em;
   }
 
-  .count-green { color: var(--green); }
+  .count-green { color: var(--gold-light); }
   .count-blue { color: var(--blue); }
   .count-amber { color: var(--amber); }
   .count-red { color: var(--red); }
@@ -603,7 +605,7 @@
     background: rgba(255,255,255,0.15);
   }
 
-  .sat-dot.filled { background: var(--green); }
+  .sat-dot.filled { background: var(--gold-light); }
 
   @media (max-width: 600px) {
     .summary-bar {
@@ -630,7 +632,11 @@
 <body>
 <div class="app">
   <header>
-    <h1>Matriz de <span>Propósito</span></h1>
+    <h1 style="display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+      <span style="color: var(--gold-light); font-weight: 800;">PROFIT+</span>
+      <span style="color: var(--accent-light); font-weight: 300;">LIDER</span>
+      <span style="color: var(--text-dim); font-weight: 400; font-size: 0.55em; border-left: 1px solid var(--border); padding-left: 0.75rem; margin-left: 0.25rem;">Matriz de Propósito</span>
+    </h1>
     <p>No solo urgente vs. importante — prioriza lo que te acerca a tu misión y te llena de energía.</p>
   </header>
 
@@ -677,7 +683,7 @@
       <div class="slider-group">
         <div class="slider-label">
           <span>Satisfacción / Energía</span>
-          <span class="slider-value" id="joyVal" style="color: var(--green)">3</span>
+          <span class="slider-value" id="joyVal" style="color: var(--gold-light)">3</span>
         </div>
         <div class="slider-description">¿Te da energía o te la quita?</div>
         <input type="range" id="joy" min="1" max="5" value="3" oninput="updateSlider('joy')">
@@ -792,7 +798,7 @@ let weights = { urgency: 0.20, mission: 0.45, joy: 0.35 };
 
 function updateSlider(id) {
   const val = document.getElementById(id).value;
-  const colors = { urgency: 'var(--amber)', mission: 'var(--accent-light)', joy: 'var(--green)' };
+  const colors = { urgency: 'var(--amber)', mission: 'var(--accent-light)', joy: 'var(--gold-light)' };
   const elId = id + 'Val';
   document.getElementById(elId).textContent = val;
   document.getElementById(elId).style.color = colors[id];
