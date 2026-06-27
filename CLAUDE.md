@@ -29,8 +29,15 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 - **Pricing (USD, Opción A):** pago único pronto pago USD 2,997 · plan a 3 mensualidades USD 1,097.
 - **Brief de oferta aprobado:** `1wVdVQusmUiCFN-KDl8Sxhr3A3SYLVagdQAmQf_E4qek` — *Sprint 1 - Oferta Dueños Libres Piloto (aprobada)*.
 - **Página de ventas v1 (gdoc):** `158BHhDRQIfc4-yv3Xf7jC5OXu3HJ-LxMLXJSrr1TxSc` — *pagina_ventas_duenos_libres_piloto_v1*. Sustituye al `.docx` viejo.
+- **Página de ventas v2 (gdoc, lista para publicar):** `1tyTcovahrIH-_paWsfnhyiD6d-Iei-7jdF_Aa7qV9Ms` — *pagina_ventas_duenos_libres_piloto_v2*. Incluye testimonio de Alfonso M., bio fusionada con la voz de `rolvi.page` (ángulo "40 años / cicatrices"), datos de contacto reales y CTA a Calendly de 30 min.
 - **Bloques Discovery Call agendados (America/Mexico_City):** lunes 6-jul 10-12h · lunes 13-jul 16-18h · lunes 20-jul 10-12h (último).
-- **Placeholders aún pendientes en la página de ventas (solo Rolando puede llenar):** testimonio + nombre/cargo cliente, 3 métricas, foto, link de agenda, WhatsApp, email, dominio de landing, handle social.
+- **Datos de contacto activos:**
+  - Calendly: https://calendly.com/rolando-villarreal/30min (Discovery Call 30 min)
+  - WhatsApp: https://wa.me/528661123135
+  - Email: coaching@rolvi.page
+  - LinkedIn: https://www.linkedin.com/in/rolandomvillarreal
+- **Landing pública:** vivirá como subpágina dentro de `rolvi.page` (URL objetivo: `rolvi.page/duenos-libres`). No duplicar foto ni bio: ya viven en `rolvi.page`. El repo del sitio rolvi.page vive en OTRO repositorio (sesión separada "Landing page domain deployment").
+- **Confirmaciones aún abiertas:** (1) ¿OK con "Alfonso M." como firma del testimonio o vamos a anónimo total? (2) ¿Confirmamos URL final `rolvi.page/duenos-libres` o se mete en otra ruta?
 
 ### Activos existentes (Drive fileIds)
 
