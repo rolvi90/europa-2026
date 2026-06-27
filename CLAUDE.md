@@ -17,9 +17,20 @@ Toolchain del repo (solo si te pide trabajar sobre él):
 
 ## Proyecto A — Dueños Libres / PROFIT-LIBRE
 
-Aparentemente renombrado a **"El Fundador Libre"** (sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Innovación, Equipo). Confirmar con el usuario si el nombre final es Dueños Libres o Fundador Libre.
+Nombre cerrado (27-jun-2026): cohort **Dueños Libres**, método interno **PROFIT-LIBRE**. La marca anterior "El Fundador Libre" queda como histórica; el doc viejo `pagina_ventas_el_fundador_libre.docx` se conserva como referencia, no como página activa.
+
+Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Innovación, Equipo.
 
 **Carpeta raíz en Drive:** `LIBRE + PROFIT` — folder id `1Z_3doghK0BniUopSq-NfHbcoMajC5CTI`.
+
+### Sprint 1 cerrado (27-jun-2026)
+
+- **Formato del piloto:** cohort cerrado, 8-10 plazas, 12 semanas, arranque 1 de agosto de 2026, cierre de inscripciones 25 de julio (pronto pago 18 de julio).
+- **Pricing (USD, Opción A):** pago único pronto pago USD 2,997 · plan a 3 mensualidades USD 1,097.
+- **Brief de oferta aprobado:** `1wVdVQusmUiCFN-KDl8Sxhr3A3SYLVagdQAmQf_E4qek` — *Sprint 1 - Oferta Dueños Libres Piloto (aprobada)*.
+- **Página de ventas v1 (gdoc):** `158BHhDRQIfc4-yv3Xf7jC5OXu3HJ-LxMLXJSrr1TxSc` — *pagina_ventas_duenos_libres_piloto_v1*. Sustituye al `.docx` viejo.
+- **Bloques Discovery Call agendados (America/Mexico_City):** lunes 6-jul 10-12h · lunes 13-jul 16-18h · lunes 20-jul 10-12h (último).
+- **Placeholders aún pendientes en la página de ventas (solo Rolando puede llenar):** testimonio + nombre/cargo cliente, 3 métricas, foto, link de agenda, WhatsApp, email, dominio de landing, handle social.
 
 ### Activos existentes (Drive fileIds)
 
