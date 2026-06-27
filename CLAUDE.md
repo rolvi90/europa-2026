@@ -26,7 +26,7 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 ### Sprint 1 cerrado (27-jun-2026)
 
 - **Formato del piloto:** cohort cerrado, 8-10 plazas, 12 semanas, arranque 1 de agosto de 2026, cierre de inscripciones 25 de julio (pronto pago 18 de julio).
-- **Pricing (USD, Opción A):** pago único pronto pago USD 2,997 · plan a 3 mensualidades USD 1,097.
+- **Pricing vigente en v2 (USD, ajustado por Rolando 27-jun-2026):** pago único pronto pago USD 1,450 · plan a 3 mensualidades USD 497/mes (USD 1,491 total). *(Antes era USD 2,997 / USD 1,097×3; Rolando recalibró el piloto a este rango.)*
 - **Brief de oferta aprobado:** `1wVdVQusmUiCFN-KDl8Sxhr3A3SYLVagdQAmQf_E4qek` — *Sprint 1 - Oferta Dueños Libres Piloto (aprobada)*.
 - **Página de ventas v1 (gdoc):** `158BHhDRQIfc4-yv3Xf7jC5OXu3HJ-LxMLXJSrr1TxSc` — *pagina_ventas_duenos_libres_piloto_v1*. Sustituye al `.docx` viejo.
 - **Página de ventas v2 (gdoc, lista para publicar):** `1tyTcovahrIH-_paWsfnhyiD6d-Iei-7jdF_Aa7qV9Ms` — *pagina_ventas_duenos_libres_piloto_v2*. Incluye testimonio de Alfonso M., bio fusionada con la voz de `rolvi.page` (ángulo "40 años / cicatrices"), datos de contacto reales y CTA a Calendly de 30 min.
@@ -117,3 +117,14 @@ El usuario opera con estos MCP conectados a esta sesión: **Google Drive, Gmail,
 - No redistribuir el material de Positive Intelligence / PQ Coach: es soporte interno, no parte del producto.
 - Antes de proponer trabajo sobre el Proyecto B, confirmar que el Proyecto A no necesita atención esa sesión.
 - El usuario suele preferir entregables concretos (un doc nuevo, un módulo, un evento en calendario) sobre planes adicionales.
+
+### Manejo de gdocs vivos en Drive (regla crítica)
+
+El MCP de Drive no expone una operación de "editar in-place" de gdocs; `create_file` siempre genera un archivo nuevo. Esto históricamente provocó que regenerara el doc completo desde memoria y borrara las ediciones manuales de Rolando (caso vivido: cambio de precio en `pagina_ventas_duenos_libres_piloto_v2` reescrito 3 veces).
+
+Regla a partir de ahora:
+
+1. **Antes de cualquier "actualización" a un gdoc existente, leer su contenido actual con `mcp__Google_Drive__read_file_content`.** El doc vivo en Drive es la fuente de verdad, no la copia en memoria de la sesión.
+2. Si solo hay que añadir un cambio puntual: pegárselo a Rolando en chat para que él lo aplique manualmente, o pedir permiso explícito antes de regenerar el doc.
+3. Si Rolando autoriza regenerar, hacerlo partiendo del contenido leído de Drive, no de la versión que subí originalmente.
+4. Nunca asumir que "mi última versión" sigue siendo la actual: entre turnos, Rolando edita directamente en Drive.
