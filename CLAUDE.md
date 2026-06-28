@@ -39,6 +39,15 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 - **Landing pública:** vivirá como subpágina dentro de `rolvi.page` (URL objetivo: `rolvi.page/duenos-libres`). No duplicar foto ni bio: ya viven en `rolvi.page`. El repo del sitio rolvi.page vive en OTRO repositorio (sesión separada "Landing page domain deployment").
 - **Confirmaciones aún abiertas:** (1) ¿OK con "Alfonso M." como firma del testimonio o vamos a anónimo total? (2) ¿Confirmamos URL final `rolvi.page/duenos-libres` o se mete en otra ruta?
 
+### Sprint 2 — Deck modular del programa (en curso)
+
+- **Decisión de marca (27-jun-2026):** Rolando es Certified Profit Coach (miembro activo). El cohort Dueños Libres es idea propia, evolución del método. El deck puede usar logos y frameworks de The Profit Coach, pero traducidos al español y adaptados a PyME LatAm. Voz del deck: PROFIT-LIBRE (Rolando), con créditos a The Profit Coach donde corresponda.
+- **Formato:** 8 decks separados — 1 de bienvenida (Sem 0-1) + 6 por dimensión PROFIT (Sem 2-11) + 1 de cierre/demo day (Sem 12). ~15-20 slides cada uno.
+- **Workflow:** outline/guion completo antes de producir slides. Producción en Canva o Slides una vez aprobado el outline.
+- **Outline maestro v1:** gdoc `159orRfpnn43UAbuiOAcrkT4AGuarNK1BTuUSsviOVuc` — *outline_deck_modular_duenos_libres_v1*. En revisión por Rolando.
+- **Hipótesis pendientes de confirmar en el outline:** (1) qué significa "LIBRE" en PROFIT-LIBRE (hipótesis: capa transversal de liderazgo consciente, no acrónimo), (2) idioma 100% español o bilingüe, (3) moneda MXN o USD en casos.
+- **Assets reutilizables del taller The Profit Coach** (gslides `11uNeeSWy9kxGiDoTvyyI8-61Pdh8OI5v3qfMWWMQYaM`): 5 Levels of Business Owner, 3 Pillars, 9 Step Roadmap, POWER Plan, Profit Maximiser, Business MAP, Trusted Team frameworks.
+
 ### Activos existentes (Drive fileIds)
 
 Comercial / metodología:
