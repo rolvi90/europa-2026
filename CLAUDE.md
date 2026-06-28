@@ -44,35 +44,56 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 - **Decisión de marca (27-jun-2026):** Rolando es Certified Profit Coach (miembro activo). El cohort Dueños Libres es idea propia, evolución del método. El deck puede usar logos y frameworks de The Profit Coach, pero traducidos al español y adaptados a PyME LatAm. Voz del deck: PROFIT-LIBRE (Rolando), con créditos a The Profit Coach donde corresponda.
 - **Formato:** 8 decks separados — 1 de bienvenida (Sem 0-1) + 6 por dimensión PROFIT (Sem 2-11) + 1 de cierre/demo day (Sem 12). ~15-20 slides cada uno.
 - **Workflow:** outline/guion completo antes de producir slides. Producción en Canva o Slides una vez aprobado el outline.
-- **Outline maestro v1:** gdoc `159orRfpnn43UAbuiOAcrkT4AGuarNK1BTuUSsviOVuc` — *outline_deck_modular_duenos_libres_v1*. HISTÓRICO (mapeo viejo de LIBRE como capa transversal). Sustituido por v2.
-- **Outline maestro v2 (vigente, 28-jun-2026):** gdoc `15OFTFgH26hnvWL04U1cMqypnr-QV4gxFXFz9mlLQuHQ` — *outline_deck_modular_duenos_libres_v2*. Tiene mapeo PROFIT × LIBRE cerrado, herramientas asignadas por deck, y estructura de las 7 HTML por construir (5 nuevas + 2 conversiones XLSX→HTML).
-- **Acrónimo LIBRE confirmado:** L Liderazgo · I Institucionalización · B Bienestar · R Rumbo y Cultura · E Estructura Real (no es capa transversal, son 5 dimensiones propias).
-- **Mapeo PROFIT × LIBRE cerrado:** P+B+R · R+L · O+I · F+I · I+L · T+L · Cierre+E. Decisión idioma: 100% español. Moneda: USD principal + MXN entre paréntesis.
+- **Outline maestro v1:** gdoc `159orRfpnn43UAbuiOAcrkT4AGuarNK1BTuUSsviOVuc`. HISTÓRICO (LIBRE como capa transversal).
+- **Outline maestro v2:** gdoc `15OFTFgH26hnvWL04U1cMqypnr-QV4gxFXFz9mlLQuHQ`. HISTÓRICO (LIBRE como acrónimo de 5 dimensiones).
+- **Outline maestro v3 (VIGENTE, 28-jun-2026):** gdoc `1tmzRzgdcfIbLd4MD3A7h8awKonBXVS3qF9xeYLCTkag` — *outline_deck_modular_duenos_libres_v3*. **LIBRE deja de ser acrónimo; ahora = VISION (un pilar conceptual).** PROFIT-LIBRE pasa a ser el sistema completo de los 3 Pilares del Profit Coach.
+- **Marco definitivo — 3 Pilares:**
+  - VISION (LIBRE) — la vida y el negocio que quieres. Sin dimensiones; una sola sesión densa.
+  - VELOCIDAD — cómo el negocio se mueve. Dimensiones: P · R · O.
+  - VALOR — cómo el negocio sostiene y multiplica valor. Dimensiones: F · I · T.
+- **Mensaje central:** "VISION te dice a dónde · VELOCIDAD para acelerar tu negocio · VALOR te mantiene firme."
+- **Cómo se absorben las dimensiones LIBRE viejas:** Liderazgo → I + T · Institucionalización → O + F · Bienestar → VISION · Rumbo y Cultura → VISION + T · Estructura Real → F + T.
+- **Decisión idioma:** 100% español. **Moneda:** USD principal + MXN entre paréntesis.
 - **Assets reutilizables del taller The Profit Coach** (gslides `11uNeeSWy9kxGiDoTvyyI8-61Pdh8OI5v3qfMWWMQYaM`): 5 Levels of Business Owner, 3 Pillars, 9 Step Roadmap, POWER Plan, Profit Maximiser, Business MAP, Trusted Team frameworks.
 
-### Sprint 2/3 — Inventario de herramientas del cohort
+### Estructura del deck modular (v3) — 9 decks
 
-**Decisión:** las herramientas y tareas del cohort en HTML autocontenidas (estética azul/oro, Lora + DM Sans, localStorage para guardar, imprimir/PDF). Decks en Canva.
+0. Bienvenida + Diagnóstico (Sem 0)
+1. **VISION** (Sem 1) — Vida + plan 1-3-5 años + Brújula
+2. VELOCIDAD · P · Profit (Sem 2-3)
+3. VELOCIDAD · R · Revenue (Sem 4-5)
+4. VELOCIDAD · O · Operaciones (Sem 6) — cierra bloque VELOCIDAD con Matriz de Crecimiento Empresarial
+5. VALOR · F · Finanzas/KPIs (Sem 7-8)
+6. VALOR · I · Innovación (Sem 9)
+7. VALOR · T · Equipo (Sem 10-11) — separado del Cierre, incluye assessment de alineamiento equipo + socios
+8. Cierre / Demo Day (Sem 12)
+
+### Sprint 2/3 — Inventario de herramientas del cohort (v3)
+
+**Decisión:** herramientas en HTML autocontenidas (azul/oro, Lora + DM Sans, localStorage, imprimir/PDF). Decks en Canva.
 
 HTML existentes rebranded a Dueños Libres (28-jun-2026, archivos entregados a Rolando para subir a Drive):
-- `mision_duenos_libres.html` — 4 pasos (Carta del Viejo Sabio · 3 Círculos · 3 Versiones · Declaración Final)
-- `valores_duenos_libres.html` — 7 pasos (60→25→10→5 valores + brújula de decisiones)
-- `matriz_proposito_duenos_libres.html` — Matriz Urgencia × Misión × Satisfacción
+- `mision_duenos_libres.html` — Brújula parte 1 (Misión)
+- `valores_duenos_libres.html` — Brújula parte 2 (Valores)
+- `matriz_proposito_duenos_libres.html` — Brújula parte 3 (Matriz Urgencia × Misión × Satisfacción)
 
 Conversiones XLSX → HTML por hacer (Sprint 3):
-- `diagnostico_profit_libre.html` (desde el xlsx con 72 preguntas, 6 dim × 3 sub × 4 preg, dashboard PROFIT con barras + 5 Niveles del Director)
-- `life_assessment.html` (desde el xlsx con 100 preguntas, 10 áreas de vida, rueda de vida)
+- `diagnostico_profit_libre.html` (72 preguntas, 6 dim × 3 sub × 4 preg, dashboard + 5 Niveles del Director) — desde `4ad95dbc-diagnostico_fundador_libre_final.xlsx`
+- `life_assessment.html` (100 preguntas, 10 áreas, rueda de vida) — desde `6b85a3f4-life_assessment_fundador_libre_v5.xlsx`
+- `matriz_crecimiento_empresarial.html` (50 preguntas, 5 niveles × 10 categorías, scoring + prioridades color) — desde pestaña S1 de `Archivo Maestro Alineamiento y Aceleración` (gsheet `1lfUbAf7yDx0Ce7qEKzuXJM2tblVhWDZ88h5zEFIneUg`). Se usa al CIERRE del bloque VELOCIDAD (Sem 6), no de entrada.
 
-HTML nuevos a producir (Sprint 3, estructura detallada en outline v2):
-- `matriz_procesos.html` (Deck 3 · Operaciones)
-- `dashboard_kpis.html` (Deck 4 · Finanzas/KPIs)
-- `canvas_innovacion.html` (Deck 5 · Innovación)
-- `matriz_habilidad_disfrute.html` (Deck 6 · Equipo)
-- `plan_profit_libre_360.html` (Deck 7 · Cierre / Demo Day)
+HTML nuevos a producir (Sprint 3, estructura detallada en outline v3):
+- `plan_135_anios.html` (Deck 1 · VISION) — plan 1-3-5 años, estilo 3 Year Vision Orbit del Profit Coach
+- `matriz_procesos.html` (Deck 4 · Operaciones)
+- `dashboard_kpis.html` (Deck 5 · Finanzas/KPIs)
+- `canvas_innovacion.html` (Deck 6 · Innovación)
+- `assessment_alineamiento_equipo.html` (Deck 7 · Equipo) — encuesta a equipo + socios, 5 dimensiones (visión, accountability, comunicación, confianza, rumbo), heatmap + brechas + pasos a seguir
+- `matriz_habilidad_disfrute.html` (Deck 7 · Equipo)
+- `plan_profit_libre_360.html` (Deck 8 · Cierre / Demo Day)
 
-XLSX originales (los conserva Rolando, no subidos a Drive desde upload):
-- `diagnostico_fundador_libre_final.xlsx` — fileId nuevo cuando Rolando lo suba
-- `life_assessment_fundador_libre_v5.xlsx` — análogo
+XLSX originales (los conserva Rolando):
+- `diagnostico_fundador_libre_final.xlsx`
+- `life_assessment_fundador_libre_v5.xlsx`
 
 ### Activos existentes (Drive fileIds)
 
