@@ -44,9 +44,35 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 - **Decisión de marca (27-jun-2026):** Rolando es Certified Profit Coach (miembro activo). El cohort Dueños Libres es idea propia, evolución del método. El deck puede usar logos y frameworks de The Profit Coach, pero traducidos al español y adaptados a PyME LatAm. Voz del deck: PROFIT-LIBRE (Rolando), con créditos a The Profit Coach donde corresponda.
 - **Formato:** 8 decks separados — 1 de bienvenida (Sem 0-1) + 6 por dimensión PROFIT (Sem 2-11) + 1 de cierre/demo day (Sem 12). ~15-20 slides cada uno.
 - **Workflow:** outline/guion completo antes de producir slides. Producción en Canva o Slides una vez aprobado el outline.
-- **Outline maestro v1:** gdoc `159orRfpnn43UAbuiOAcrkT4AGuarNK1BTuUSsviOVuc` — *outline_deck_modular_duenos_libres_v1*. En revisión por Rolando.
-- **Hipótesis pendientes de confirmar en el outline:** (1) qué significa "LIBRE" en PROFIT-LIBRE (hipótesis: capa transversal de liderazgo consciente, no acrónimo), (2) idioma 100% español o bilingüe, (3) moneda MXN o USD en casos.
+- **Outline maestro v1:** gdoc `159orRfpnn43UAbuiOAcrkT4AGuarNK1BTuUSsviOVuc` — *outline_deck_modular_duenos_libres_v1*. HISTÓRICO (mapeo viejo de LIBRE como capa transversal). Sustituido por v2.
+- **Outline maestro v2 (vigente, 28-jun-2026):** gdoc `15OFTFgH26hnvWL04U1cMqypnr-QV4gxFXFz9mlLQuHQ` — *outline_deck_modular_duenos_libres_v2*. Tiene mapeo PROFIT × LIBRE cerrado, herramientas asignadas por deck, y estructura de las 7 HTML por construir (5 nuevas + 2 conversiones XLSX→HTML).
+- **Acrónimo LIBRE confirmado:** L Liderazgo · I Institucionalización · B Bienestar · R Rumbo y Cultura · E Estructura Real (no es capa transversal, son 5 dimensiones propias).
+- **Mapeo PROFIT × LIBRE cerrado:** P+B+R · R+L · O+I · F+I · I+L · T+L · Cierre+E. Decisión idioma: 100% español. Moneda: USD principal + MXN entre paréntesis.
 - **Assets reutilizables del taller The Profit Coach** (gslides `11uNeeSWy9kxGiDoTvyyI8-61Pdh8OI5v3qfMWWMQYaM`): 5 Levels of Business Owner, 3 Pillars, 9 Step Roadmap, POWER Plan, Profit Maximiser, Business MAP, Trusted Team frameworks.
+
+### Sprint 2/3 — Inventario de herramientas del cohort
+
+**Decisión:** las herramientas y tareas del cohort en HTML autocontenidas (estética azul/oro, Lora + DM Sans, localStorage para guardar, imprimir/PDF). Decks en Canva.
+
+HTML existentes rebranded a Dueños Libres (28-jun-2026, archivos entregados a Rolando para subir a Drive):
+- `mision_duenos_libres.html` — 4 pasos (Carta del Viejo Sabio · 3 Círculos · 3 Versiones · Declaración Final)
+- `valores_duenos_libres.html` — 7 pasos (60→25→10→5 valores + brújula de decisiones)
+- `matriz_proposito_duenos_libres.html` — Matriz Urgencia × Misión × Satisfacción
+
+Conversiones XLSX → HTML por hacer (Sprint 3):
+- `diagnostico_profit_libre.html` (desde el xlsx con 72 preguntas, 6 dim × 3 sub × 4 preg, dashboard PROFIT con barras + 5 Niveles del Director)
+- `life_assessment.html` (desde el xlsx con 100 preguntas, 10 áreas de vida, rueda de vida)
+
+HTML nuevos a producir (Sprint 3, estructura detallada en outline v2):
+- `matriz_procesos.html` (Deck 3 · Operaciones)
+- `dashboard_kpis.html` (Deck 4 · Finanzas/KPIs)
+- `canvas_innovacion.html` (Deck 5 · Innovación)
+- `matriz_habilidad_disfrute.html` (Deck 6 · Equipo)
+- `plan_profit_libre_360.html` (Deck 7 · Cierre / Demo Day)
+
+XLSX originales (los conserva Rolando, no subidos a Drive desde upload):
+- `diagnostico_fundador_libre_final.xlsx` — fileId nuevo cuando Rolando lo suba
+- `life_assessment_fundador_libre_v5.xlsx` — análogo
 
 ### Activos existentes (Drive fileIds)
 
