@@ -72,28 +72,40 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 
 **Decisión:** herramientas en HTML autocontenidas (azul/oro, Lora + DM Sans, localStorage, imprimir/PDF). Decks en Canva.
 
-HTML existentes rebranded a Dueños Libres (28-jun-2026, archivos entregados a Rolando para subir a Drive):
+**Sprint 3 de HTMLs: CERRADO (29-jun-2026).** Las 13 herramientas están generadas y entregadas a Rolando por chat (pendiente que él las suba a Drive). Todas con marca Dueños Libres + `coaching@rolvi.page`, mismo sistema visual, y con reglas de scroll/foco corregidas tras testing (ver notas por archivo).
+
+HTML existentes rebranded a Dueños Libres:
 - `mision_duenos_libres.html` — Brújula parte 1 (Misión)
 - `valores_duenos_libres.html` — Brújula parte 2 (Valores)
-- `matriz_proposito_duenos_libres.html` — Brújula parte 3 (Matriz Urgencia × Misión × Satisfacción)
+- `matriz_proposito_duenos_libres.html` — Brújula parte 3 (v2: textarea de misión ampliado + botón "↗ Mover" tarjeta entre cuadrantes con pin manual)
 
-Conversiones XLSX → HTML por hacer (Sprint 3):
-- `diagnostico_profit_libre.html` (72 preguntas, 6 dim × 3 sub × 4 preg, dashboard + 5 Niveles del Director) — desde `4ad95dbc-diagnostico_fundador_libre_final.xlsx`
-- `life_assessment.html` (100 preguntas, 10 áreas, rueda de vida) — desde `6b85a3f4-life_assessment_fundador_libre_v5.xlsx`
-- `matriz_crecimiento_empresarial.html` (50 preguntas, 5 niveles × 10 categorías, scoring + prioridades color) — desde pestaña S1 de `Archivo Maestro Alineamiento y Aceleración` (gsheet `1lfUbAf7yDx0Ce7qEKzuXJM2tblVhWDZ88h5zEFIneUg`). Se usa al CIERRE del bloque VELOCIDAD (Sem 6), no de entrada.
+Conversiones XLSX → HTML (hechas):
+- `diagnostico_profit_libre.html` (72 preguntas, 6 dim × 3 sub × 4 preg, dashboard + 5 Niveles del Director) — desde `4ad95dbc-diagnostico_fundador_libre_final.xlsx`. Fix aplicado: scroll ya no salta al inicio al responder cada pregunta.
+- `life_assessment.html` (100 preguntas, 10 áreas, rueda de vida en SVG nativo) — desde `6b85a3f4-life_assessment_fundador_libre_v5.xlsx`
+- `matriz_crecimiento_empresarial.html` (50 preguntas, 5 niveles × 10 categorías, heatmap + Profit-Fun Matrix) — desde pestaña S1 de `Archivo Maestro Alineamiento y Aceleración` (gsheet `1lfUbAf7yDx0Ce7qEKzuXJM2tblVhWDZ88h5zEFIneUg`). Se usa al CIERRE del bloque VELOCIDAD (Sem 6). Escala en español: No / Más o Menos / Ideal (ajustado 29-jun-2026).
 
-HTML nuevos a producir (Sprint 3, estructura detallada en outline v3):
-- `plan_135_anios.html` (Deck 1 · VISION) — plan 1-3-5 años, estilo 3 Year Vision Orbit del Profit Coach
-- `matriz_procesos.html` (Deck 4 · Operaciones)
-- `dashboard_kpis.html` (Deck 5 · Finanzas/KPIs)
-- `canvas_innovacion.html` (Deck 6 · Innovación)
-- `assessment_alineamiento_equipo.html` (Deck 7 · Equipo) — encuesta a equipo + socios, 5 dimensiones (visión, accountability, comunicación, confianza, rumbo), heatmap + brechas + pasos a seguir
-- `matriz_habilidad_disfrute.html` (Deck 7 · Equipo)
-- `plan_profit_libre_360.html` (Deck 8 · Cierre / Demo Day)
+HTML nuevos producidos (Sprint 3):
+- `plan_135_anios.html` (Deck 1 · VISION) — Norte a 5 años (vida+negocio) + 2 Vision Orbits (8 áreas negocio / 6 áreas vida × 4 horizontes) + compromisos 90 días
+- `profit_maximiser.html` (Deck 2 · Profit) — NUEVO, no estaba en el plan original. 5 palancas (Leads·Conversión·Ops/Cliente·Venta·Margen) con simulador en vivo + banco de ideas editable/agregable por palanca, tomado de gsheet `1XXx2Mib_KDh8eE89jqi8reloclyGaeQNcDgDNv_uwH8` (pestaña español)
+- `matriz_procesos.html` (Deck 4 · Operaciones) — top-3 procesos por score Frecuencia×Dependencia×Costo + plantilla "video de 5 min"
+- `dashboard_kpis.html` (Deck 5 · Finanzas/KPIs) — 5 números con semáforo automático + KPIs por área + cadencia + vista celular mockup
+- `canvas_innovacion.html` (Deck 6 · Innovación) — Lean Canvas 8 celdas + selector de palanca PROFIT que conecta con profit_maximiser.html
+- `assessment_alineamiento_equipo.html` (Deck 7 · Equipo) — encuesta a equipo + socios, 5 dimensiones, heatmap cruzado persona×dimensión + top-3 brechas
+- `matriz_habilidad_disfrute.html` (Deck 7 · Equipo) — matriz visual SVG 2×2, 4 zonas (Genialidad/Aprendizaje/Obligación/Quitar)
+- `plan_profit_libre_360.html` (Deck 8 · Cierre / Demo Day) — documento integrador: resumen ejecutivo, compromisos por pilar, sistemas, cadencia, revisión 30/60/90. Reforzado para impresión: ninguna tarjeta se corta a la mitad entre páginas.
 
 XLSX originales (los conserva Rolando):
 - `diagnostico_fundador_libre_final.xlsx`
 - `life_assessment_fundador_libre_v5.xlsx`
+
+### Sprint 3 — Producción de decks en Canva (en curso, 29-jun-2026)
+
+- **Carpeta Canva:** `Dueños Libres - Decks del Cohort` — folder id `FAHOKVIqzVM`.
+- **No hay brand kit configurado en Canva** (`list-brand-kits` devuelve vacío). Se especifica la paleta explícitamente en cada prompt de estilo: azul marino `#1E3A5F` + dorado `#8C6300`, tipografía Lora (títulos) + DM Sans (cuerpo).
+- **Hallazgo importante:** Rolando ya tenía varios diseños de Canva previos y relacionados directamente con el programa (fuera de esta carpeta), entre ellos: *"Los 5 Niveles del Business Owner"*, *"De empleado de tu negocio a dueño estratégico: El método P.R.O.F.I.T"*, *"Excelencia Operativa"* (13 pág.), *"Rueda de la Vida"*, *"Copy of Capacitación MASECSA"* (42 pág.). No se han revisado a fondo — antes de generar más decks desde cero, vale la pena valorar si conviene reusar/adaptar alguno.
+- **Flujo de generación:** `request-outline-review` (outline en widget, requiere aprobación explícita del usuario) → `generate-design-structured` (puede tardar y hacer timeout en el primer intento con decks de 15+ slides; reintentar suele funcionar) → devuelve 4 diseños candidatos → usuario elige uno → `create-design-from-candidate` lo vuelve editable → `move-item-to-folder` a `FAHOKVIqzVM`.
+- **Deck 0 (Bienvenida y Diagnóstico):** generado, 18 slides, Rolando eligió la Versión 1 de 4 candidatos. Diseño editable: `DAHOKjGsXn4` — https://www.canva.com/d/GOUsn_OxUNVrTzR. Rolando está ajustando manualmente los colores (quiere fusionar el dorado/azul más saturado de la Versión 2 con la V1 elegida).
+- **Pendientes:** Decks 1-8 (VISION, Profit, Revenue, Operaciones, Finanzas/KPIs, Innovación, Equipo, Cierre) — mismo flujo, mismo estilo. Para acelerar, considerar pedir explícitamente "dorado y azul marino más saturados, como el ejemplo ya elegido" en el prompt de estilo desde el inicio.
 
 ### Activos existentes (Drive fileIds)
 
