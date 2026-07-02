@@ -98,7 +98,7 @@ XLSX originales (los conserva Rolando):
 - `diagnostico_fundador_libre_final.xlsx`
 - `life_assessment_fundador_libre_v5.xlsx`
 
-### Sprint 3 — Producción de decks en Canva (en curso, 29-jun-2026)
+### Sprint 3 — Producción de decks en Canva + PowerPoint (CERRADO, 02-jul-2026)
 
 - **Carpeta Canva:** `Dueños Libres - Decks del Cohort` — folder id `FAHOKVIqzVM`.
 - **No hay brand kit configurado en Canva** (`list-brand-kits` devuelve vacío). Se especifica la paleta explícitamente en cada prompt de estilo: azul marino `#1E3A5F` + dorado `#8C6300`, tipografía Lora (títulos) + DM Sans (cuerpo).
@@ -118,7 +118,8 @@ XLSX originales (los conserva Rolando):
   - Deck 5 · Finanzas/KPIs: `DAHOMU5LKkI` — https://www.canva.com/d/LCZzcrWc4-3nbZX
   - Deck 6 · Innovación: `DAHOMbwI7uw` — https://www.canva.com/d/CUzFFxlv4bIhIMW
   - Deck 7 · Equipo: `DAHOMZanJ4o` — https://www.canva.com/d/153mAjqAIMn27Xs
-- **Pendiente: Deck 8 (Cierre / Demo Day) — BLOQUEADO por cuota de Canva.** El outline ya está aprobado y listo, pero `generate-design-structured` devolvió `User has reached their quota limit`. Reintentar en una sesión futura cuando la cuota se reinicie; usar el mismo outline sin acentos/comillas (título: "Duenos Libres - Deck 8: Cierre y Demo Day del cohort", 16 slides ya redactados en el historial de la sesión del 29-jun-2026).
+- **Deck 8 (Cierre / Demo Day) — resuelto por fallback a PowerPoint (02-jul-2026).** `generate-design-structured` devolvió `User has reached their quota limit` en dos intentos separados (29-jun y 02-jul), el segundo incluso después de que Rolando borrara varios archivos de su cuenta Canva para intentar liberar espacio — esto confirma que es un límite de cuota de generación a nivel de cuenta, **no** un límite de almacenamiento/número de archivos, y por tanto no se resuelve borrando archivos. Ante el bloqueo persistente, Rolando autorizó explícitamente construir este deck en PowerPoint como alternativa ("Si no, lo haremos en Power pOint"). Se generó con `python-pptx` replicando la misma identidad visual que los 8 decks de Canva (azul marino `#1E3A5F` + dorado `#8C6300`, Lora en títulos, DM Sans en cuerpo, mismo patrón de portada/cierre en azul con barra dorada + slides de contenido en crema con barra lateral azul), 16 slides con el outline ya aprobado. Archivo entregado a Rolando por chat: `Deck8_Cierre_Demo_Day_Duenos_Libres.pptx`. Si en una sesión futura la cuota de Canva se reinicia, se puede regenerar en Canva con el mismo outline para mantener consistencia de formato con los otros 8, pero el .pptx ya es funcional y entregable tal cual.
+- **Estado final Sprint 3: 9/9 decks completos** (8 en Canva + 1 en PowerPoint).
 
 ### Activos existentes (Drive fileIds)
 
