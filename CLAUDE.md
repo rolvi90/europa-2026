@@ -29,15 +29,15 @@ Sistema PROFIT, 6 dimensiones: Profit, Revenue, Operaciones, Finanzas/KPIs, Inno
 - **Pricing vigente en v2 (USD, ajustado por Rolando 27-jun-2026):** pago único pronto pago USD 1,450 · plan a 3 mensualidades USD 497/mes (USD 1,491 total). *(Antes era USD 2,997 / USD 1,097×3; Rolando recalibró el piloto a este rango.)*
 - **Brief de oferta aprobado:** `1wVdVQusmUiCFN-KDl8Sxhr3A3SYLVagdQAmQf_E4qek` — *Sprint 1 - Oferta Dueños Libres Piloto (aprobada)*.
 - **Página de ventas v1 (gdoc):** `158BHhDRQIfc4-yv3Xf7jC5OXu3HJ-LxMLXJSrr1TxSc` — *pagina_ventas_duenos_libres_piloto_v1*. Sustituye al `.docx` viejo.
-- **Página de ventas v2 (gdoc, lista para publicar):** `1tyTcovahrIH-_paWsfnhyiD6d-Iei-7jdF_Aa7qV9Ms` — *pagina_ventas_duenos_libres_piloto_v2*. Incluye testimonio de Alfonso M., bio fusionada con la voz de `rolvi.page` (ángulo "40 años / cicatrices"), datos de contacto reales y CTA a Calendly de 30 min.
+- **Página de ventas v2 (gdoc, lista para publicar):** `1tyTcovahrIH-_paWsfnhyiD6d-Iei-7jdF_Aa7qV9Ms` — *pagina_ventas_duenos_libres_piloto_v2*. Incluye testimonio anonimizado (07-jul-2026: Rolando quitó la firma "Alfonso M.", queda solo "Fundador y Director General · Empresa de transporte y fletes de carga nacional"), bio fusionada con la voz de `rolvi.page` (ángulo "40 años / cicatrices"), datos de contacto reales y CTA a Calendly de 30 min.
 - **Bloques Discovery Call agendados (America/Mexico_City):** lunes 6-jul 10-12h · lunes 13-jul 16-18h · lunes 20-jul 10-12h (último).
 - **Datos de contacto activos:**
   - Calendly: https://calendly.com/rolando-villarreal/30min (Discovery Call 30 min)
   - WhatsApp: https://wa.me/528661123135
   - Email: coaching@rolvi.page
   - LinkedIn: https://www.linkedin.com/in/rolandomvillarreal
-- **Landing pública:** vivirá como subpágina dentro de `rolvi.page` (URL objetivo: `rolvi.page/duenos-libres`). No duplicar foto ni bio: ya viven en `rolvi.page`. El repo del sitio rolvi.page vive en OTRO repositorio (sesión separada "Landing page domain deployment").
-- **Confirmaciones aún abiertas:** (1) ¿OK con "Alfonso M." como firma del testimonio o vamos a anónimo total? (2) ¿Confirmamos URL final `rolvi.page/duenos-libres` o se mete en otra ruta?
+- **Landing pública:** vivirá como subpágina dentro de `rolvi.page` (URL objetivo: `rolvi.page/duenos-libres`). No duplicar foto ni bio: ya viven en `rolvi.page`. **El repo del sitio se llama `profit-landing`** (07-jul-2026) y vive fuera del scope de GitHub de esta sesión (fijada a `rolvi90/europa-2026` a nivel de entorno) — publicar ahí requiere abrir/crear una sesión de Claude Code con `profit-landing` agregado como fuente del entorno.
+- **Confirmaciones cerradas:** (1) Testimonio: anónimo total, sin firma con nombre (resuelto 07-jul-2026). (2) URL final: `rolvi.page/duenos-libres` confirmada.
 
 ### Sprint 2 — Deck modular del programa (en curso)
 
