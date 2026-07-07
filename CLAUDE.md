@@ -121,6 +121,13 @@ XLSX originales (los conserva Rolando):
 - **Deck 8 (Cierre / Demo Day) — resuelto por fallback a PowerPoint (02-jul-2026).** `generate-design-structured` devolvió `User has reached their quota limit` en dos intentos separados (29-jun y 02-jul), el segundo incluso después de que Rolando borrara varios archivos de su cuenta Canva para intentar liberar espacio — esto confirma que es un límite de cuota de generación a nivel de cuenta, **no** un límite de almacenamiento/número de archivos, y por tanto no se resuelve borrando archivos. Ante el bloqueo persistente, Rolando autorizó explícitamente construir este deck en PowerPoint como alternativa ("Si no, lo haremos en Power pOint"). Se generó con `python-pptx` replicando la misma identidad visual que los 8 decks de Canva (azul marino `#1E3A5F` + dorado `#8C6300`, Lora en títulos, DM Sans en cuerpo, mismo patrón de portada/cierre en azul con barra dorada + slides de contenido en crema con barra lateral azul), 16 slides con el outline ya aprobado. Archivo entregado a Rolando por chat: `Deck8_Cierre_Demo_Day_Duenos_Libres.pptx`. Si en una sesión futura la cuota de Canva se reinicia, se puede regenerar en Canva con el mismo outline para mantener consistencia de formato con los otros 8, pero el .pptx ya es funcional y entregable tal cual.
 - **Estado final Sprint 3: 9/9 decks completos** (8 en Canva + 1 en PowerPoint).
 
+### Sprint 4 — Folleto digital de venta (07-jul-2026)
+
+- **Pedido:** un one-pager para enviar por WhatsApp a un prospecto o alrededor de una Discovery Call — vista rápida + link a la landing para detalles/inscripción.
+- **Producido:** `folleto_duenos_libres.html` (fuente editable, mismo brand azul/dorado + Lora/DM Sans) renderizado a PDF de una sola página carta con Playwright/Chromium (headless, ya preinstalado en el entorno; binario en `/opt/pw-browsers/chromium`, symlink directo — no usar rutas tipo `chromium/chrome-linux/chrome`).
+- **Contenido condensado de la página de ventas v2:** hook, 3 Pilares en una línea c/u, checklist de qué se construye en 12 semanas, testimonio anónimo + stat de resultado (4-5% → 17% utilidad), chips de cohort (12 semanas · 8-10 lugares · arranque 1 ago), inversión (ambas opciones + garantía), CTA a Calendly/WhatsApp/email, cierre con link a `rolvi.page/duenos-libres`.
+- **Archivo entregado a Rolando por chat:** `Folleto_Duenos_Libres.pdf`.
+
 ### Activos existentes (Drive fileIds)
 
 Comercial / metodología:
