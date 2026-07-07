@@ -127,6 +127,9 @@ XLSX originales (los conserva Rolando):
 - **Producido:** `folleto_duenos_libres.html` (fuente editable, mismo brand azul/dorado + Lora/DM Sans) renderizado a PDF de una sola página carta con Playwright/Chromium (headless, ya preinstalado en el entorno; binario en `/opt/pw-browsers/chromium`, symlink directo — no usar rutas tipo `chromium/chrome-linux/chrome`).
 - **Contenido condensado de la página de ventas v2:** hook, 3 Pilares en una línea c/u, checklist de qué se construye en 12 semanas, testimonio anónimo + stat de resultado (4-5% → 17% utilidad), chips de cohort (12 semanas · 8-10 lugares · arranque 1 ago), inversión (ambas opciones + garantía), CTA a Calendly/WhatsApp/email, cierre con link a `rolvi.page/duenos-libres`.
 - **Archivo entregado a Rolando por chat:** `Folleto_Duenos_Libres.pdf`.
+- **Fix (07-jul-2026):** el link `rolvi.page/duenos-libres` del pie del PDF quedó como texto plano en la v1 (no era hipervínculo); corregido a `<a href>` real.
+- **Versión story para WhatsApp (07-jul-2026):** `story_duenos_libres.html` renderizado a `Story_Duenos_Libres.png` (1080×1920, formato vertical WhatsApp/Instagram), mismo contenido condensado a poster con los 3 contactos (Calendly, WhatsApp, página) legibles. **Limitación importante:** una imagen enviada por chat de WhatsApp no soporta links tocables (solo si se publica como Estado con sticker de link) — los contactos quedan como texto para copiar/escribir, no clicables. El PDF sí conserva los 3 como hipervínculos reales.
+- **Bloqueante activo:** `rolvi.page/duenos-libres` aún NO está publicada (ver tarea pendiente #7 / Sprint 2 "Landing pública"). El link ya está bien formado mecánicamente pero hoy lleva a un 404 real. Repartir estos materiales con esa referencia solo tiene sentido una vez la landing esté viva, o se puede sustituir temporalmente por un link que sí funcione (p. ej. directo a Calendly) mientras tanto.
 
 ### Activos existentes (Drive fileIds)
 
