@@ -86,7 +86,7 @@ Conversiones XLSX → HTML (hechas):
 
 HTML nuevos producidos (Sprint 3):
 - `plan_135_anios.html` (Deck 1 · VISION) — Norte a 5 años (vida+negocio) + 2 Vision Orbits (8 áreas negocio / 6 áreas vida × 4 horizontes) + compromisos 90 días
-- `profit_maximiser.html` (Deck 2 · Profit) — NUEVO, no estaba en el plan original. 5 palancas (Leads·Conversión·Ops/Cliente·Venta·Margen) con simulador en vivo + banco de ideas editable/agregable por palanca, tomado de gsheet `1XXx2Mib_KDh8eE89jqi8reloclyGaeQNcDgDNv_uwH8` (pestaña español)
+- `profit_maximiser.html` (Deck 2 · Profit) — NUEVO, no estaba en el plan original. 5 palancas (Leads·Conversión·Ops/Cliente·Venta·Margen), banco de ideas editable/agregable por palanca, tomado de gsheet `1XXx2Mib_KDh8eE89jqi8reloclyGaeQNcDgDNv_uwH8` (pestaña español). **Flujo corregido (09-jul-2026):** el orden real de uso es captura de números → lluvia de ideas por palanca (cada idea del grupo se ubica en Leads/Conversión/Operaciones/Venta/Margen) → estimar impacto moviendo sliders. Se invirtió el orden de los pasos "simulador" e "ideas" (antes el simulador iba primero) y se agregó un diagrama que repite la fórmula de la portada pero con cada valor mostrando "actual → nuevo" en vivo según el movimiento de cada slider (efecto multiplicador visual), función `formulaLiveHtml()`/`updateFormulaLive()` en el HTML.
 - `matriz_procesos.html` (Deck 4 · Operaciones) — top-3 procesos por score Frecuencia×Dependencia×Costo + plantilla "video de 5 min"
 - `dashboard_kpis.html` (Deck 5 · Finanzas/KPIs) — 5 números con semáforo automático + KPIs por área + cadencia + vista celular mockup
 - `canvas_innovacion.html` (Deck 6 · Innovación) — Lean Canvas 8 celdas + selector de palanca PROFIT que conecta con profit_maximiser.html
